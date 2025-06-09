@@ -1,0 +1,43 @@
+@attribute [Route(HrUsersLinks.Create)]
+@using Application.Client.Components
+@using Application.Client.Constants.Links
+
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<TitleBlock Title="Add HR" />
+
+<MudForm>
+
+<MudCard>
+    <MudCardHeader>
+        <MudText Typo="Typo.h3">Base description</MudText>
+    </MudCardHeader>
+    <MudCardContent Style="display: flex; flex-direction: column; gap: 10px;">
+        <MudTextField Label="Name" @bind-Value="_newHr.TgName"
+                      MaxLength="200"
+                      Margin="Margin.Normal"/>
+
+        <MudTextField Label="Alias"
+                      @bind-Value="_newHr.Alias"
+                      MaxLength="200"
+                      AutoGrow="true"/>
+    </MudCardContent>
+    
+    <MudCardActions>
+        <MudButton OnClick="Create">Create</MudButton>
+    </MudCardActions>
+</MudCard>
+
+</MudForm>
+
+@code {
+    private readonly NewHrUser _newHr = new();
+    
+    public async Task Create()
+    {
+        await Task.Delay(500); // Simulate some delay for the example
+        Snackbar.Add("HR user created successfully!", Severity.Success);
+        Navigation.NavigateTo(HrUsersLinks.Edit(1));
+    }
+}

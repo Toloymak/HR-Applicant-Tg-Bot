@@ -1,0 +1,35 @@
+@using Application.Client.Constants.Links
+@using Microsoft.AspNetCore.Components.Authorization
+
+<AuthorizeView>
+    <Authorized>
+        <MudDrawer @bind-Open="Open"
+                   ClipMode="_clipMode"
+                   Elevation="1"
+                   Variant="@DrawerVariant.Responsive">
+            <MudDrawerHeader>
+                <MudText Typo="Typo.h6">HR telegram bot</MudText>
+            </MudDrawerHeader>
+
+            <MudNavMenu>
+                <MudNavLink Match="NavLinkMatch.All"
+                            Href="@VacancyLinks.List">
+                    Vacancies
+                </MudNavLink>
+                <MudNavLink Match="NavLinkMatch.All"
+                            Href="@HrUsersLinks.List">
+                    HR Users
+                </MudNavLink>
+            </MudNavMenu>
+
+        </MudDrawer>
+    </Authorized>
+</AuthorizeView>
+
+@code{
+    [Parameter, EditorRequired]
+    public bool Open { get; set; }
+    
+    private bool _dense = false;
+    private DrawerClipMode _clipMode = DrawerClipMode.Never;
+}

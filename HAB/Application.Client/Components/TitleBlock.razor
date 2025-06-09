@@ -1,0 +1,19 @@
+@using Microsoft.AspNetCore.Components.Authorization
+<div style="
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px">
+    <MudText Typo="Typo.h1">@Title</MudText>
+    <div style="display: flex; align-items: center; gap: 40px;">
+        @RightSection
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = null!;
+
+    [Parameter]
+    public RenderFragment? RightSection { get; set; }
+}

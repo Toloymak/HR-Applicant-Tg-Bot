@@ -1,0 +1,18 @@
+﻿@page "/"
+@using Application.Client.Components.Auth
+@using Microsoft.AspNetCore.Components.Authorization
+
+<PageTitle>Candidate management</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <MudText Typo="Typo.h1">Hi, @(context.User.Identity?.Name ?? "Unknown")</MudText>
+    </Authorized>
+    <NotAuthorized>
+        <MudText Typo="Typo.h1">Welcome!</MudText>
+        
+        <div style="margin: 50px auto">
+            <TgAuth/>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>

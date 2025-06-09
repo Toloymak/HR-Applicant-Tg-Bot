@@ -1,0 +1,23 @@
+<div style="
+    padding: 15px;
+    border: 1px solid #ce7000;
+    border-radius: 5px;
+    margin-top: 30px;
+    margin-bottom: 30px">
+    <div>
+        <MudText Typo="Typo.h6" Color="Color.Info">
+            @Title
+        </MudText>
+    </div>
+    <div>
+        <MudText Typo="Typo.h6">@ChildContent</MudText>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = null!;
+    
+    [Parameter, EditorRequired]
+    public RenderFragment ChildContent { get; set; } = null!;
+}

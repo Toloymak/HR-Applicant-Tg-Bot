@@ -1,0 +1,19 @@
+@using Application.Client.Services
+@inject IWhoAmIService WhoAmI
+@inject ILogoutService LogoutService
+@inject NavigationManager Navigation
+
+<MudButton Color="Color.Warning"
+           Variant="Variant.Text"
+           OnClick="Logout">
+    Logout
+</MudButton>
+
+@code {
+    private async Task Logout()
+    {
+        await LogoutService.Logout();
+        await WhoAmI.AuthMe();
+        Navigation.NavigateTo("/");
+    }
+}

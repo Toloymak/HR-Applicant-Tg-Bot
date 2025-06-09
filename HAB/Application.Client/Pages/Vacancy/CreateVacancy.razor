@@ -1,0 +1,62 @@
+@using Application.Client.Constants.Links
+@using Application.Client.Components
+@attribute [Route(VacancyLinks.Create)]
+
+<TitleBlock Title="Create vacancy" />
+
+<MudForm>
+
+<MudCard>
+    <MudCardHeader>
+        <MudText Typo="Typo.h3">Base description</MudText>
+    </MudCardHeader>
+    <MudCardContent Style="display: flex; flex-direction: column; gap: 10px;">
+        <MudTextField Label="Name" @bind-Value="_newVacancy.Name"
+                      MaxLength="200"
+                      Margin="Margin.Normal"/>
+
+        <MudTextField Label="Description"
+                      @bind-Value="_newVacancy.Description"
+                      MaxLength="1000"
+                      AutoGrow="true"/>
+
+        <MudTextField Label="Default accepted to review text"
+                      @bind-Value="_newVacancy.DefaultAcceptedToReviewText"
+                      HelperText="This text will be used to be shown to the candidate when he finished the application filling"
+                      MaxLength="1000"
+                      AutoGrow="true"/>
+
+        <MudTextField Label="Default rejected text"
+                      @bind-Value="_newVacancy.DefaultRejectText"
+                      HelperText="This text will be used to be shown to the candidate when HR rejected the application"
+                      MaxLength="1000"
+                      AutoGrow="true"/>
+    </MudCardContent>
+</MudCard>
+
+<MudCard>
+    <MudCardActions Style="justify-content: end; gap: 30px;">
+        <MudButton Href="@VacancyLinks.List"
+                    Color="Color.Secondary"
+                   Variant="Variant.Text">
+            Back
+        </MudButton>
+        <MudButton OnClick="() => _newVacancy = new()"
+                   Color="Color.Warning"
+                   Variant="Variant.Filled">
+            Clear
+        </MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled">
+            Create
+        </MudButton>
+    </MudCardActions>
+</MudCard>
+
+</MudForm>
+
+@code{
+
+    private NewVacancy _newVacancy = new();
+
+}

@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>telegram-hiring-bot-7A50DB4E-0C7F-453A-995E-11C343F000A9</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.5" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.4">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <ProjectReference Include="..\ApiCore\ApiCore.csproj" />
+        <ProjectReference Include="..\CandidateTgBot\CandidateTgBot.csproj" />
+        <ProjectReference Include="..\Application.Client\Application.Client.csproj"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Application.Client\obj\Application.Client.csproj.nuget.dgspec.json" />
+      <_ContentIncludedByDefault Remove="Application.Client\obj\project.assets.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Options\" />
+    </ItemGroup>
+
+</Project>

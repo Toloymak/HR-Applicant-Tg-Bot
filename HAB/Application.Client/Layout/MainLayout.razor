@@ -1,0 +1,88 @@
+﻿@using Application.Client.Constants.Links
+@using Application.Client.Pages.Vacancy
+@using Microsoft.AspNetCore.Components.Authorization
+@using Application.Client.Components.Auth
+@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="Theme"/>
+<MudPopoverProvider/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+
+<style>
+    .portal-name-link{
+        font-size: 22px;
+        font-weight: 600;
+        
+        &:hover {
+            text-decoration: none;
+        }
+    }
+</style>
+
+<MudLayout>
+    <MudAppBar Elevation="1"
+               Dense="false">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="@ToggleDrawer"/>
+        <MudText Typo="Typo.h6">
+            <MudLink Href="/" Color="Color.Inherit"
+                     Class="portal-name-link">
+                Candidate Management
+            </MudLink>
+        </MudText>
+        <MudSpacer/>
+
+        <AuthorizeView>
+            <Authorized>
+                <MudText Typo="Typo.h6">
+                    Hi, @(context.User.Identity?.Name ?? "Unknown")!
+                </MudText>
+                <MudText Typo="Typo.h6" Style="margin-left: 15px">
+                    <LogoutBtn/>
+                </MudText>
+            </Authorized>
+        </AuthorizeView>
+    </MudAppBar>
+
+    <NavigationMenu Open="_open" />
+    
+    <MudMainContent Class="pt-16 px-16"
+                    Style="margin-top: 40px; max-width: 800px; margin-left: auto; margin-right: auto;">
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@code{
+    private bool _open = true;
+    private DrawerClipMode _clipMode = DrawerClipMode.Never;
+
+    private void ToggleDrawer()
+    {
+        _open = !_open;
+    }
+
+    private static readonly MudTheme Theme = new MudTheme()
+    {
+        Typography = new Typography()
+        {
+            H1 = new H1Typography()
+            {
+                FontSize = "42px"
+            },
+            H3 = new H3Typography()
+            {
+                FontSize = "32px"
+            }
+        },
+    };
+
+}

@@ -1,0 +1,44 @@
+@using Application.Client.Services
+@using Shared.Models.Requests
+@using Shared.Models.Responses
+@inject IJSRuntime Js
+@inject HttpClient Http
+@inject IWhoAmIService WhoAmI
+
+
+<div>
+    <script async src="https://telegram.org/js/telegram-widget.js?22"
+            data-telegram-login=""
+            data-size="large"
+            data-onauth="onTelegramAuth(user)"
+            data-request-access="write"></script>
+</div>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Js.InvokeVoidAsync("setDotnetHelper",
+                DotNetObjectReference.Create(this));
+        }
+    }
+
+    [JSInvokable]
+    public async Task ReceiveTelegramAuthResult(TelegramAuthRequests request)
+    {
+        var res = await Http.PostAsJsonAsync("api/auth/tg", request);
+        if (res.IsSuccessStatusCode)
+        {
+            // AuthStateProvider.MarkUserAuthenticated(response.Token);
+            Console.WriteLine("##### AUTH SUCCESS!");
+            await WhoAmI.AuthMe();
+        }
+        else
+        {
+            Console.WriteLine("##### AUTH ERROR: " + res.ReasonPhrase);
+        }
+        
+        StateHasChanged();
+    }
+}

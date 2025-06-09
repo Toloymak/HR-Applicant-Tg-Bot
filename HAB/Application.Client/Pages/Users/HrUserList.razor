@@ -1,0 +1,72 @@
+@using Application.Client.Constants.Links
+@using UiShared.Sercvies
+@using Application.Client.Components
+@using Application.Client.Extensions
+@using Application.Client.Services
+@using Application.Client.Services.HrUsers
+@using Shared
+@using Shared.Models
+@attribute [Route(HrUsersLinks.List)]
+
+@inject IHrUserProvider Provider
+@inject ISnackbar Snackbar
+
+<PageTitle>Admins</PageTitle>
+
+<TitleBlock Title="Admins">
+    <RightSection>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                   Href="@HrUsersLinks.Create">
+            Add new admin
+        </MudButton>
+    </RightSection>
+</TitleBlock>
+
+<Note Title="Information">
+    HR users will get access to all vacancies and applications
+</Note>
+
+<MudDataGrid ServerData="LoadData" T="HrUserListItem">
+    <Columns>
+        <PropertyColumn Property="x => x.Alias" Title="Name" />
+        <PropertyColumn Property="x => x.TgName" Title="TG name"/>
+        <TemplateColumn>
+            <CellTemplate>
+                @if (context.Item is {} hr)
+                {
+                    <MudLink Href="@HrUsersLinks.Edit(hr.Id)">View</MudLink>
+                }
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager  />
+    </PagerContent>
+</MudDataGrid>
+
+
+@code{
+
+    private async Task<GridData<HrUserListItem>> LoadData(
+        GridState<HrUserListItem> state)
+    {
+        var getResult = await Provider.Get(
+            state.ToPagination(),
+            string.Empty,
+            CancellationToken.None);
+
+        if (!getResult.IsRight)
+        {
+            var error = getResult.Match(_ => null!, error => error);
+            Snackbar.Add($"Oops! Something went wrong: {error.Message.TakeLeft(100)}", Severity.Error);
+        }
+        
+        return getResult.Match(
+            data => new GridData<HrUserListItem>()
+            {
+                Items = data.Data,
+                TotalItems = data.TotalCount,
+            },
+            _ => new GridData<HrUserListItem>());
+    }
+}

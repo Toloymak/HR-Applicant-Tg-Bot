@@ -1,0 +1,52 @@
+@page "/Hrs/{Id:int}"
+@using Application.Client.Components
+
+@inject ISnackbar Snackbar
+
+<TitleBlock Title="Edit HR" />
+
+<MudForm>
+
+    <MudCard>
+        <MudCardHeader>
+            <MudText Typo="Typo.h3">Base description</MudText>
+        </MudCardHeader>
+        <MudCardContent Style="display: flex; flex-direction: column; gap: 10px;">
+            <MudTextField Label="Name" @bind-Value="_editHrUser.TgName"
+                          MaxLength="200"
+                          Margin="Margin.Normal"/>
+
+            <MudTextField Label="Alias"
+                          @bind-Value="_editHrUser.Alias"
+                          MaxLength="200"
+                          AutoGrow="true"/>
+        </MudCardContent>
+    
+        <MudCardActions>
+            <MudButton OnClick="Save">Save</MudButton>
+        </MudCardActions>
+    </MudCard>
+
+</MudForm>
+
+
+@code {
+    [Parameter, SupplyParameterFromQuery]
+    public int Id { get; set; }
+    
+    private readonly EditHrUser _editHrUser = new EditHrUser()
+    {
+        Id = 1,
+        Alias = "Liza",
+        TgName = "@liza_hr_top_mega_hunter",
+        Position = "BOSS"
+    };
+    
+    private async Task Save()
+    {
+        // Simulate saving the HR user
+        await Task.Delay(500);
+        
+        Snackbar.Add("HR user saved successfully!", Severity.Success);
+    }
+}

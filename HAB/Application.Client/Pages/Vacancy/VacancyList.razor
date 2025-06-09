@@ -1,0 +1,74 @@
+@using Application.Client.Constants.Links
+@using Application.Client.Extensions
+@using Shared
+@using Shared.Models
+@using UiShared.Sercvies
+@using Application.Client.Components
+
+@attribute [Route(VacancyLinks.List)]
+
+@inject IVacanciesProvider Provider
+@inject ISnackbar Snackbar
+
+<PageTitle>Vacancies</PageTitle>
+
+<TitleBlock Title="Vacancies">
+    <RightSection>
+        <MudSwitch @bind-Value="_includeArchived"
+                   Color="Color.Primary">
+            Include archived
+        </MudSwitch>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                   Href="@VacancyLinks.Create">
+            Create new vacancy
+        </MudButton>
+    </RightSection>
+</TitleBlock>
+
+<MudDataGrid ServerData="LoadData" T="VacancyListItem">
+    <Columns>
+        <PropertyColumn Property="x => x.Title" Title="Vacancy" />
+        <PropertyColumn Property="x => x.HrName" Title="HR" />
+        <PropertyColumn Property="x => x.ApplicationsCount" Title="Applications" />
+        <PropertyColumn Property="x => x.CreatedAt.ToShortDateString()" Title="Created" />
+        <TemplateColumn>
+            <CellTemplate>
+                <MudLink>View</MudLink>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager  />
+    </PagerContent>
+</MudDataGrid>
+
+
+@code{
+    private bool _includeArchived;
+
+    private async Task<GridData<VacancyListItem>> LoadData(
+        GridState<VacancyListItem> state)
+    {
+        var getResult = await Provider.GetVacancies(
+            state.ToPagination(),
+            new VacancyListFilter()
+            {
+                IncludeArchived = _includeArchived,
+            },
+            CancellationToken.None);
+
+        if (!getResult.IsRight)
+        {
+            var error = getResult.Match(_ => null!, error => error);
+            Snackbar.Add($"Oops! Something went wrong: {error.Message.TakeLeft(100)}", Severity.Error);
+        }
+        
+        return getResult.Match(
+            data => new GridData<VacancyListItem>()
+            {
+                Items = data.Data,
+                TotalItems = data.TotalCount,
+            },
+            _ => new GridData<VacancyListItem>());
+    }
+}
