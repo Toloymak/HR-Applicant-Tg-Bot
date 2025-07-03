@@ -75,4 +75,79 @@ public class VacanciesRepository
             return ex;
         }
     }
+
+    public async Task<Either<Exception, Guid>> Edit(EditVacancyRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var vacancy = await _context.Vacancies.FindAsync(new object[] { request.Id }, ct);
+            if (vacancy == null)
+                return new Exception("Vacancy not found");
+            vacancy.Title = request.Name;
+            vacancy.Description = request.Description;
+            vacancy.DefaultRejectText = request.DefaultRejectText;
+            vacancy.FinishedApplicationText = request.DefaultAcceptedToReviewText;
+            await _context.SaveChangesAsync(ct);
+            return vacancy.Id;
+        }
+        catch (Exception ex)
+        {
+            return ex;
+        }
+    }
+
+    public async Task<Either<Exception, VacancyListItem>> GetById(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            var vacancy = await _context.Vacancies
+                .AsNoTracking()
+                .Where(x => x.Id == id)
+                .Select(x => new VacancyListItem
+                {
+                    Id = x.Id,
+                    Title = x.Title,
+                    HrId = x.HrId,
+                    HrName = x.Hr != null ? x.Hr.Alias : null,
+                    ApplicationsCount = x.Applications != null ? x.Applications.Count : 0,
+                    CreatedAt = x.CreatedAt
+                })
+                .FirstOrDefaultAsync(ct);
+            if (vacancy == null)
+                return new Exception("Vacancy not found");
+            return vacancy;
+        }
+        catch (Exception ex)
+        {
+            return ex;
+        }
+    }
+
+    public async Task<Either<Exception, VacancyDetailsDto>> GetDetailsById(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            var vacancy = await _context.Vacancies
+                .Where(x => x.Id == id)
+                .Select(x => new VacancyDetailsDto
+                {
+                    Id = x.Id,
+                    Title = x.Title,
+                    Description = x.Description,
+                    HrName = x.Hr != null ? x.Hr.Alias : string.Empty,
+                    ApplicationsCount = x.Applications != null ? x.Applications.Count : 0,
+                    CreatedAt = x.CreatedAt,
+                    DefaultRejectText = x.DefaultRejectText,
+                    DefaultAcceptedToReviewText = x.FinishedApplicationText
+                })
+                .FirstOrDefaultAsync(ct);
+            if (vacancy == null)
+                return new Exception("Vacancy not found");
+            return vacancy;
+        }
+        catch (Exception ex)
+        {
+            return ex;
+        }
+    }
 } 

@@ -6,7 +6,7 @@ using Shared.Models.Requests;
 
 namespace Application.UIServices;
 
-public class VacanciesProvider : IVacanciesProvider, ICreateVacancy
+public class VacanciesProvider : IVacanciesProvider, ICreateVacancy, IEditVacancy
 {
     private readonly VacanciesRepository _repository;
 
@@ -35,5 +35,15 @@ public class VacanciesProvider : IVacanciesProvider, ICreateVacancy
         CreateVacancyRequest request, CancellationToken ct)
     {
         return await _repository.Create(request, ct);
+    }
+
+    public async Task<Either<Exception, Guid>> EditVacancy(EditVacancyRequest request, CancellationToken ct)
+    {
+        return await _repository.Edit(request, ct);
+    }
+
+    public async Task<Either<Exception, VacancyDetailsDto>> GetVacancyById(Guid id, CancellationToken ct)
+    {
+        return await _repository.GetDetailsById(id, ct);
     }
 }

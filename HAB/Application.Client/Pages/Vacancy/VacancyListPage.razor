@@ -33,7 +33,10 @@
         <PropertyColumn Property="x => x.CreatedAt.ToShortDateString()" Title="Created" />
         <TemplateColumn>
             <CellTemplate>
-                <MudLink>View</MudLink>
+                @if (context.Item != null)
+                {
+                    <MudLink Href="@VacancyLinks.Edit(context.Item.Id)">View</MudLink>   
+                }
             </CellTemplate>
         </TemplateColumn>
     </Columns>

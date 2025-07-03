@@ -24,6 +24,7 @@ builder.Services.AddTransient<IHrUserService, HrUserService>();
 builder.Services.AddTransient<ILogoutService, LogoutService>();
 builder.Services.AddTransient<IAuthService, AuthService>();
 builder.Services.AddTransient<ICreateVacancy, VacanciesProvider>();
+builder.Services.AddTransient<IEditVacancy, VacanciesProvider>();
 
 builder.Services.AddAuthorizationCore();
 

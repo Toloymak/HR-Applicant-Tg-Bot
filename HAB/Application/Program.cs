@@ -76,6 +76,7 @@ builder.Services.AddTransient<VacanciesRepository>();
 builder.Services.AddTransient<IWhoAmIService, WhoAmI>();
 builder.Services.AddTransient<IAuthService, AuthService>();
 builder.Services.AddTransient<ICreateVacancy, VacanciesProvider>();
+builder.Services.AddTransient<IEditVacancy, VacanciesProvider>();
 
 var jwt = builder.Configuration.GetSection("Jwt").GetSection("SigningKey").Value
     ?? throw new InvalidOperationException("JWT Signing Key is not configured.");

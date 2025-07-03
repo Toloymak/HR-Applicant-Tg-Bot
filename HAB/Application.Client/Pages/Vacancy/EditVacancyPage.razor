@@ -1,0 +1,105 @@
+@page "/vacancies/edit/{Id:guid}"
+@using Application.Client.Constants.Links
+@using Shared.Models.Requests
+@using UiShared.Sercvies
+@using Application.Client.Pages.Vacancy
+@inject IEditVacancy EditVacancyService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IVacanciesProvider VacanciesProvider
+
+<MudForm @ref="_form">
+    <MudCard>
+        <MudCardHeader>
+            <MudText Typo="Typo.h3">Edit Vacancy</MudText>
+        </MudCardHeader>
+        <MudCardContent Style="display: flex; flex-direction: column; gap: 10px;">
+            <MudTextField Label="Name" @bind-Value="_model.Title" MaxLength="200" Margin="Margin.Normal" Required="true" />
+            <MudTextField Label="Description" @bind-Value="_model.Description" MaxLength="1000" AutoGrow="true" />
+            <MudTextField Label="Default accepted to review text" @bind-Value="_model.DefaultAcceptedToReviewText" HelperText="Text shown to candidate when application is finished" MaxLength="1000" AutoGrow="true" />
+            <MudTextField Label="Default rejected text" @bind-Value="_model.DefaultRejectText" HelperText="Text shown to candidate when HR rejects application" MaxLength="1000" AutoGrow="true" />
+        </MudCardContent>
+    </MudCard>
+    <MudCard>
+        <MudCardActions Style="justify-content: end; gap: 30px;">
+            <MudButton OnClick="OnBack" Color="Color.Secondary" Variant="Variant.Text">Back</MudButton>
+            <MudButton OnClick="OnClear" Color="Color.Warning" Variant="Variant.Filled">Clear</MudButton>
+            <MudButton OnClick="OnEdit" Color="Color.Primary" Variant="Variant.Filled">Save</MudButton>
+        </MudCardActions>
+    </MudCard>
+</MudForm>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private MudForm? _form;
+    private EditVacancy _model = new();
+    private EditVacancy? _original;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await VacanciesProvider.GetVacancyById(Id, CancellationToken.None);
+        result.Match(
+            vacancy => {
+                _model = new EditVacancy
+                {
+                    Id = vacancy.Id,
+                    Title = vacancy.Title,
+                    Description = vacancy.Description,
+                    DefaultAcceptedToReviewText = vacancy.DefaultAcceptedToReviewText,
+                    DefaultRejectText = vacancy.DefaultRejectText
+                };
+                _original = new EditVacancy
+                {
+                    Id = vacancy.Id,
+                    Title = vacancy.Title,
+                    Description = vacancy.Description,
+                    DefaultAcceptedToReviewText = vacancy.DefaultAcceptedToReviewText,
+                    DefaultRejectText = vacancy.DefaultRejectText
+                };
+            },
+            ex => Snackbar.Add($"Error loading vacancy: {ex.Message}", Severity.Error)
+        );
+    }
+
+    private async Task OnEdit()
+    {
+        if (_form is null)
+            return;
+        await _form.Validate();
+        if (!_form.IsValid)
+            return;
+        var request = new EditVacancyRequest
+        {
+            Id = Id,
+            Name = _model.Title,
+            Description = _model.Description,
+            DefaultAcceptedToReviewText = _model.DefaultAcceptedToReviewText,
+            DefaultRejectText = _model.DefaultRejectText
+        };
+        var result = await EditVacancyService.EditVacancy(request, CancellationToken.None);
+        result.Match(
+            _ =>
+            {
+                _original = _model with { };
+                Snackbar.Add("Vacancy updated successfully!", Severity.Success);
+            },
+            ex => Snackbar.Add($"Error: {ex.Message}", Severity.Error)
+        );
+    }
+
+    private void OnClear()
+    {
+        if (_original is not null)
+            _model = new EditVacancy
+            {
+                Id = _original.Id,
+                Title = _original.Title,
+                Description = _original.Description,
+                DefaultAcceptedToReviewText = _original.DefaultAcceptedToReviewText,
+                DefaultRejectText = _original.DefaultRejectText
+            };
+    }
+
+    private void OnBack()
+        => Navigation.NavigateTo(VacancyLinks.List);
+} 

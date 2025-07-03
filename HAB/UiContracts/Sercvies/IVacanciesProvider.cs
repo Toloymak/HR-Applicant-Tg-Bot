@@ -9,4 +9,6 @@ public interface IVacanciesProvider
         Pagination pagination,
         VacancyListFilter filter,
         CancellationToken ct);
+
+    Task<Either<Exception, VacancyDetailsDto>> GetVacancyById(Guid id, CancellationToken ct);
 }

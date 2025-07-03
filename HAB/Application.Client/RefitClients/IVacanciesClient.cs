@@ -16,4 +16,15 @@ public interface IVacanciesClient : IRefitClient
     Task<IApiResponse<Guid>> CreateVacancy(
         [Body] CreateVacancyRequest request,
         CancellationToken ct);
+
+    [Put("/api/vacancies/{id}")]
+    Task<IApiResponse<Guid>> EditVacancy(
+        Guid id,
+        [Body] EditVacancyRequest request,
+        CancellationToken ct);
+
+    [Get("/api/vacancies/{id}")]
+    Task<IApiResponse<VacancyDetailsDto>> GetVacancyById(
+        Guid id,
+        CancellationToken ct);
 }
