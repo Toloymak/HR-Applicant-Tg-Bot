@@ -4,6 +4,7 @@ using System.Text;
 using Application.Services;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Shared.Models.HrUsers;
 using Shared.Models.Requests;
 using UKG.HCM.Application.Services;
 
@@ -13,7 +14,7 @@ namespace UKG.HCM.WebApi.Services;
 public interface IJwtTokenGenerator
 {
     /// Generate
-    string Generate(TelegramAuthRequests user);
+    string Generate(TelegramAuthRequests user, HrUserListItemDal? hrUser);
 }
 
 
@@ -30,7 +31,7 @@ internal class JwtTokenGenerator : IJwtTokenGenerator
         _options = options.Value;
     }
 
-    public string Generate(TelegramAuthRequests account)
+    public string Generate(TelegramAuthRequests account, HrUserListItemDal? hrUser)
     {
         var claims = new List<Claim>
         {
@@ -39,6 +40,15 @@ internal class JwtTokenGenerator : IJwtTokenGenerator
             new(ClaimTypes.GivenName, account.First_name),
             new(ClaimTypes.Surname, account.Last_name),
         };
+
+        if (hrUser != null)
+        {
+            claims.Add(new Claim("alias", hrUser.Alias));
+            claims.Add(new Claim("position", hrUser.Position));
+            claims.Add(new Claim("hrUserId", hrUser.Id.ToString()));
+            claims.Add(new Claim(ClaimTypes.Role, "hr"));
+
+        }
         
         var key = new SymmetricSecurityKey(Encoding.UTF8
             .GetBytes(_options.SigningKey));

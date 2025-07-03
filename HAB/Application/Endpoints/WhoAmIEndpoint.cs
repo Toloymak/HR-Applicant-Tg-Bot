@@ -18,13 +18,11 @@ public class WhoAmIEndpoint : IEndpointDefinition
         if (user?.Identity?.IsAuthenticated != true)
             return Results.Unauthorized();
 
-        var name = user.Identity.Name ?? "";
         var claims = user.Claims.ToDictionary(c => c.Type, c => c.Value);
 
         return Results.Ok(new CurrentUser
         {
-            Name = name,
-            Claims = claims
+            Claims = claims,
         });
     }
 }

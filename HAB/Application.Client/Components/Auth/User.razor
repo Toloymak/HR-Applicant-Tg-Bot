@@ -1,8 +1,9 @@
 @using Microsoft.AspNetCore.Components.Authorization
+@using Shared
 
 <AuthorizeView>
     <Authorized>
-        @(context.User.Identity?.Name ?? "Unknown")
+        @context.User.GetAlias() (@context.User.Identity?.Name)
     </Authorized>
     <NotAuthorized>
         <TgAuth />

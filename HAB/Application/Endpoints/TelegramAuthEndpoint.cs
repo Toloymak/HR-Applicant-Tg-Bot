@@ -1,3 +1,4 @@
+using Application.Client.Services.HrUsers;
 using Domain.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -32,6 +33,7 @@ public class TelegramAuthEndpoint : IEndpointDefinition
             TelegramAuthValidator validator,
             IJwtTokenGenerator generator,
             HttpResponse response,
+            HrUserRepository hrUserRepository,
             CancellationToken ct)
     {
         Console.WriteLine($"Auth request received: {user.Username}");
@@ -44,7 +46,6 @@ public class TelegramAuthEndpoint : IEndpointDefinition
             return TypedResults.Unauthorized();
         }
         
-        
         var isActual = 
             user.Auth_date > DateTimeOffset.UtcNow.ToUnixTimeSeconds()
                 - Lifetime.TotalSeconds;
@@ -55,7 +56,9 @@ public class TelegramAuthEndpoint : IEndpointDefinition
             return TypedResults.Unauthorized();
         }
         
-        var jwtToken = generator.Generate(user);
+        var hrUser = await hrUserRepository.GetByTgName(user.Username, ct);
+        
+        var jwtToken = generator.Generate(user, hrUser);
         
         response.Cookies.Append("auth", jwtToken, new CookieOptions
         {

@@ -9,6 +9,7 @@ public class HrBotContext : DbContext
     public HrBotContext(DbContextOptions<HrBotContext> options)
         : base(options)
     {
+        
     }
 
     public DbSet<VacancyDal> Vacations => Set<VacancyDal>();
@@ -22,6 +23,7 @@ public class HrBotContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.UseSerialColumns();
         modelBuilder
             .ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }

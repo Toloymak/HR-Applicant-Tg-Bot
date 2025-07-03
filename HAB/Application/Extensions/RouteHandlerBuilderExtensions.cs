@@ -7,7 +7,7 @@ public static class RouteHandlerBuilderExtensions
     public static RouteHandlerBuilder RequireAuthorizationPolicy(
         this RouteHandlerBuilder builder, string policyName)
         => builder
-            // .RequireAuthorization(policyName)
+            .RequireAuthorization(policyName)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden);
 }

@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace DataLayer.Dals;
 
 public class HrUserDal

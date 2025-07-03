@@ -1,3 +1,4 @@
+using System.Data;
 using DataLayer.Contexts;
 using DataLayer.Dals;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +21,8 @@ public class HrUserRepository
         CancellationToken ct)
     {
         await using var transaction =
-            await _context.Database.BeginTransactionAsync(ct);
+            await _context.Database.BeginTransactionAsync(
+                IsolationLevel.ReadUncommitted, ct);
 
         var botUser = await _context
             .BotUsers
@@ -90,5 +92,23 @@ public class HrUserRepository
             TotalCount = totalCount,
             PageNumber = pagination.PageNumber
         };
+    }
+
+    public async Task<HrUserListItemDal?> GetByTgName(
+        string tgName, CancellationToken ct)
+    {
+        var user = await _context
+            .HrUsers
+            .Where(x => x.BotUser.TgName == tgName)
+            .Select(x => new HrUserListItemDal
+            {
+                Id = x.Id,
+                Alias = x.Alias,
+                TgName = x.BotUser.TgName,
+                Position = x.Position
+            })
+            .FirstOrDefaultAsync(ct);
+
+        return user;
     }
 }

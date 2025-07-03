@@ -1,9 +1,11 @@
+using System.Security.Cryptography;
 using System.Text;
 using Application.Client.Services;
 using Application.Client.Services.HrUsers;
 using Application.Components;
 using Application.Configurations;
 using Application.HostedSevices;
+using Application.Policies;
 using Application.Services;
 using Application.UIServices;
 using CandidateTgBot;
@@ -32,7 +34,12 @@ builder.Services.AddHostedService<CandidateBotHostedService>();
 builder.Services.AddHostedService<HrBotHostedService>();
 
 builder.Services.AddDbContext<HrBotContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
+#if DEBUG
+        .EnableSensitiveDataLogging()
+        .EnableDetailedErrors()
+#endif
+    );
 
 builder.Services
     .AddOptions<CandidateBotOptions>()
@@ -101,7 +108,12 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options
+        .AddPolicy(Policy.Manage.Name, policy =>
+            policy.RequireRole(Policy.Manage.Roles));
+});
 
 var app = builder.Build();
 

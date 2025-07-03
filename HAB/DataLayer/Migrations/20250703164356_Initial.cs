@@ -64,7 +64,7 @@ namespace DataLayer.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
                     BotUserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Alias = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Position = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
