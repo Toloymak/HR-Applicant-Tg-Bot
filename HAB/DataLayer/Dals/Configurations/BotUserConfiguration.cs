@@ -12,9 +12,9 @@ public class BotUserConfiguration : IEntityTypeConfiguration<BotUserDal>
 
         builder.HasData(new BotUserDal
         {
+            Id = new Guid("d2f8b0c4-3c1e-4b5a-9f6e-7c8d9e0f1a2b"),
             TgId = "319556101",
             TgName = "brovko_a",
-            CustomName = "God admin"
         });
     }
 }

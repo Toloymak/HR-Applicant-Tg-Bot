@@ -10,8 +10,8 @@ public class ConditionDal
     public Guid QuestionId { get; set; }
     public QuestionDal? Question { get; set; }
 
-    [MaxLength(4000)]
-    public required AnswerCondition Answer { get; set; } 
+    // [MaxLength(4000)]
+    // public required AnswerCondition Answer { get; set; } 
 
     public bool IsCritical { get; set; }
 

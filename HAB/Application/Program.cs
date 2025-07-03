@@ -63,9 +63,10 @@ builder.Services.AddTransient<IVacanciesProvider, VacanciesProvider>();
 builder.Services.AddTransient<IHrUserProvider, HrUserProvider>();
 builder.Services.AddTransient<IHrUserService, HrUserService>();
 builder.Services.AddTransient<ILogoutService, LogoutService>();
-
+builder.Services.AddTransient<HrUserRepository>();
 
 builder.Services.AddTransient<IWhoAmIService, WhoAmI>();
+builder.Services.AddTransient<IAuthService, AuthService>();
 
 var jwt = builder.Configuration.GetSection("Jwt").GetSection("SigningKey").Value
     ?? throw new InvalidOperationException("JWT Signing Key is not configured.");
@@ -103,6 +104,12 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<HrBotContext>();
+    await dbContext.Database.MigrateAsync();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

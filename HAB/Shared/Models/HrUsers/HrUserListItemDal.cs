@@ -1,6 +1,6 @@
-namespace Application.Client.Pages.Users;
+namespace Shared.Models.HrUsers;
 
-public record HrUserListItem
+public record HrUserListItemDal
 {
     public required int Id { get; init; }
 

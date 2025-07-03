@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(HrBotContext))]
-    partial class AppContextModelSnapshot : ModelSnapshot
+    partial class HrBotContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
@@ -29,7 +29,8 @@ namespace DataLayer.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("AnswerText")
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<Guid>("QuestionId")
                         .HasColumnType("uuid");
@@ -52,21 +53,26 @@ namespace DataLayer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("CustomName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("TgId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("TgName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.HasKey("Id");
 
                     b.ToTable("BotUsers");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("d2f8b0c4-3c1e-4b5a-9f6e-7c8d9e0f1a2b"),
+                            TgId = "319556101",
+                            TgName = "brovko_a"
+                        });
                 });
 
             modelBuilder.Entity("DataLayer.Dals.ConditionDal", b =>
@@ -75,12 +81,8 @@ namespace DataLayer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Answer")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CriticalText")
-                        .HasColumnType("text");
+                    b.Property<bool?>("CriticalText")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsCritical")
                         .HasColumnType("boolean");
@@ -93,6 +95,35 @@ namespace DataLayer.Migrations
                     b.HasIndex("QuestionId");
 
                     b.ToTable("Conditions");
+                });
+
+            modelBuilder.Entity("DataLayer.Dals.HrUserDal", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Alias")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("BotUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Position")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BotUserId")
+                        .IsUnique();
+
+                    b.ToTable("HrUsers");
                 });
 
             modelBuilder.Entity("DataLayer.Dals.QuestionDal", b =>
@@ -109,7 +140,8 @@ namespace DataLayer.Migrations
 
                     b.Property<string>("Text")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
 
                     b.HasKey("Id");
 
@@ -130,17 +162,14 @@ namespace DataLayer.Migrations
                     b.Property<int>("State")
                         .HasColumnType("integer");
 
-                    b.Property<string>("UserAnswer")
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("VacationId")
+                    b.Property<Guid>("VacancyId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("LastQuestionId");
 
-                    b.HasIndex("VacationId");
+                    b.HasIndex("VacancyId");
 
                     b.ToTable("UserApplications");
                 });
@@ -153,11 +182,13 @@ namespace DataLayer.Migrations
 
                     b.Property<string>("DefaultRejectText")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
 
                     b.Property<string>("FinishedApplicationText")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
 
                     b.Property<Guid>("HrId")
                         .HasColumnType("uuid");
@@ -250,6 +281,17 @@ namespace DataLayer.Migrations
                     b.Navigation("Question");
                 });
 
+            modelBuilder.Entity("DataLayer.Dals.HrUserDal", b =>
+                {
+                    b.HasOne("DataLayer.Dals.BotUserDal", "BotUser")
+                        .WithOne()
+                        .HasForeignKey("DataLayer.Dals.HrUserDal", "BotUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("BotUser");
+                });
+
             modelBuilder.Entity("DataLayer.Dals.QuestionDal", b =>
                 {
                     b.HasOne("DataLayer.Dals.QuestionDal", "NextQuestion")
@@ -267,15 +309,15 @@ namespace DataLayer.Migrations
                         .HasForeignKey("LastQuestionId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("DataLayer.Dals.VacancyDal", "Vacation")
+                    b.HasOne("DataLayer.Dals.VacancyDal", "Vacancy")
                         .WithMany("Applications")
-                        .HasForeignKey("VacationId")
+                        .HasForeignKey("VacancyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("LastQuestion");
 
-                    b.Navigation("Vacation");
+                    b.Navigation("Vacancy");
                 });
 
             modelBuilder.Entity("DataLayer.Dals.VacancyDal", b =>

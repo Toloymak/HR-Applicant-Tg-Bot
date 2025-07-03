@@ -1,5 +1,6 @@
 using Application.Extensions;
 using Application.Policies;
+using Domain.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Models.HrUsers;
@@ -18,13 +19,14 @@ public class CreateHrUserEndpoint : IEndpointDefinition
     private static async Task<Results<Ok<int>, BadRequest<string>>>
         CreateUser(
             [FromBody] CreateHrUserRequest request,
+            HrUserRepository repository,
             CancellationToken ct = default)
     {
-        await Task.Delay(200, ct); // Simulate async operation
-        
         if (string.IsNullOrWhiteSpace(request.Alias) || string.IsNullOrWhiteSpace(request.TgName))
             return TypedResults.BadRequest("Alias and Telegram name are required.");
 
-        return TypedResults.Ok(1);
+        var id = await repository.CreateHrUser(request, ct);
+
+        return TypedResults.Ok(id);
     }
 }

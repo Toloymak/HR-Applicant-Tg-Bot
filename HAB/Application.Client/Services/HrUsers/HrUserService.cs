@@ -24,8 +24,11 @@ internal class HrUserService : IHrUserService
         _hrUsersClient = hrUsersClient;
     }
 
-    public async Task<Either<Exception, int>> CreateHrUser(NewHrUser newHr, CancellationToken ct)
+    public async Task<Either<Exception, int>> CreateHrUser(
+        NewHrUser newHr, CancellationToken ct)
     {
+        Console.WriteLine("Creating HR user");
+        
         var request = new CreateHrUserRequest
         {
             TgName = newHr.TgName,

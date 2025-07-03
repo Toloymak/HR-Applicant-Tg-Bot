@@ -50,10 +50,10 @@ public class VacationCreator
                             new ConditionDal
                             {
                                 QuestionId = driverLicenseQuestionId,
-                                Answer = new YesNoAnswerCondition()
-                                {
-                                    Answer = true
-                                }
+                                // Answer = new YesNoAnswerCondition()
+                                // {
+                                //     Answer = true
+                                // }
                             }
                         ],
                         NextQuestion = new QuestionDal()

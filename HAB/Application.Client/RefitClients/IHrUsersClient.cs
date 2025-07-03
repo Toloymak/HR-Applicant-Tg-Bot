@@ -20,7 +20,7 @@ public interface IHrUsersClient : IRefitClient
     
     /// Get list
     [Get("/api/hrs/")]
-    Task<IApiResponse<PaginationResult<HrUserListItem>>> Get(
+    Task<IApiResponse<PaginationResult<HrUserListItemDal>>> Get(
         [Query] Pagination pagination,
         [Query] string search,
         CancellationToken ct);

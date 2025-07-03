@@ -32,9 +32,9 @@ public class UserService
         
         var newUser = new BotUserDal
         {
+            Id = Guid.CreateVersion7(),
             TgId = user.TgId,
             TgName = user.TgName,
-            CustomName = user.TgName,
         };
 
         _context.Add(newUser);

@@ -1,9 +1,11 @@
 @attribute [Route(HrUsersLinks.Create)]
 @using Application.Client.Components
 @using Application.Client.Constants.Links
+@using Application.Client.Services.HrUsers
 
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
+@inject IHrUserService HrUserService
 
 <TitleBlock Title="Add HR" />
 
@@ -22,6 +24,11 @@
                       @bind-Value="_newHr.Alias"
                       MaxLength="200"
                       AutoGrow="true"/>
+        
+        <MudTextField Label="Position"
+                      @bind-Value="_newHr.Position"
+                      MaxLength="200"
+                      AutoGrow="true"/>
     </MudCardContent>
     
     <MudCardActions>
@@ -36,8 +43,13 @@
     
     public async Task Create()
     {
-        await Task.Delay(500); // Simulate some delay for the example
-        Snackbar.Add("HR user created successfully!", Severity.Success);
-        Navigation.NavigateTo(HrUsersLinks.Edit(1));
+        await HrUserService.CreateHrUser(_newHr, CancellationToken.None)
+            .ToAsync()
+            .Match(
+                _ => {
+                    Snackbar.Add("HR user created successfully!", Severity.Success);
+                    Navigation.NavigateTo(HrUsersLinks.List);
+                },
+                _ => Snackbar.Add($"Error creating HR user", Severity.Error));
     }
 }

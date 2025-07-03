@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -16,9 +17,8 @@ namespace DataLayer.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    TgId = table.Column<string>(type: "text", nullable: false),
-                    TgName = table.Column<string>(type: "text", nullable: false),
-                    CustomName = table.Column<string>(type: "text", nullable: false)
+                    TgId = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    TgName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -44,7 +44,7 @@ namespace DataLayer.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Text = table.Column<string>(type: "text", nullable: false),
+                    Text = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: false),
                     Answer = table.Column<int>(type: "integer", nullable: false),
                     NextQuestionId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
@@ -55,6 +55,27 @@ namespace DataLayer.Migrations
                         name: "FK_Questions_Questions_NextQuestionId",
                         column: x => x.NextQuestionId,
                         principalTable: "Questions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "HrUsers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    BotUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Alias = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Position = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HrUsers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_HrUsers_BotUsers_BotUserId",
+                        column: x => x.BotUserId,
+                        principalTable: "BotUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -86,9 +107,8 @@ namespace DataLayer.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     QuestionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Answer = table.Column<string>(type: "text", nullable: false),
                     IsCritical = table.Column<bool>(type: "boolean", nullable: false),
-                    CriticalText = table.Column<string>(type: "text", nullable: true)
+                    CriticalText = table.Column<bool>(type: "boolean", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -107,8 +127,8 @@ namespace DataLayer.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     HrId = table.Column<Guid>(type: "uuid", nullable: false),
-                    DefaultRejectText = table.Column<string>(type: "text", nullable: false),
-                    FinishedApplicationText = table.Column<string>(type: "text", nullable: false),
+                    DefaultRejectText = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: false),
+                    FinishedApplicationText = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: false),
                     RootQuestionId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
@@ -127,10 +147,9 @@ namespace DataLayer.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    VacationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    VacancyId = table.Column<Guid>(type: "uuid", nullable: false),
                     LastQuestionId = table.Column<Guid>(type: "uuid", nullable: true),
-                    State = table.Column<int>(type: "integer", nullable: false),
-                    UserAnswer = table.Column<string>(type: "text", nullable: true)
+                    State = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -142,8 +161,8 @@ namespace DataLayer.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_UserApplications_Vacations_VacationId",
-                        column: x => x.VacationId,
+                        name: "FK_UserApplications_Vacations_VacancyId",
+                        column: x => x.VacancyId,
                         principalTable: "Vacations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -156,7 +175,7 @@ namespace DataLayer.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserApplicationId = table.Column<Guid>(type: "uuid", nullable: false),
                     QuestionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AnswerText = table.Column<string>(type: "text", nullable: true)
+                    AnswerText = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -174,6 +193,11 @@ namespace DataLayer.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.InsertData(
+                table: "BotUsers",
+                columns: new[] { "Id", "TgId", "TgName" },
+                values: new object[] { new Guid("d2f8b0c4-3c1e-4b5a-9f6e-7c8d9e0f1a2b"), "319556101", "brovko_a" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Answers_QuestionId",
@@ -196,6 +220,12 @@ namespace DataLayer.Migrations
                 column: "QuestionId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_HrUsers_BotUserId",
+                table: "HrUsers",
+                column: "BotUserId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Questions_NextQuestionId",
                 table: "Questions",
                 column: "NextQuestionId");
@@ -206,9 +236,9 @@ namespace DataLayer.Migrations
                 column: "LastQuestionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserApplications_VacationId",
+                name: "IX_UserApplications_VacancyId",
                 table: "UserApplications",
-                column: "VacationId");
+                column: "VacancyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Vacations_RootQuestionId",
@@ -223,16 +253,19 @@ namespace DataLayer.Migrations
                 name: "Answers");
 
             migrationBuilder.DropTable(
-                name: "BotUsers");
-
-            migrationBuilder.DropTable(
                 name: "Condition");
 
             migrationBuilder.DropTable(
                 name: "Conditions");
 
             migrationBuilder.DropTable(
+                name: "HrUsers");
+
+            migrationBuilder.DropTable(
                 name: "UserApplications");
+
+            migrationBuilder.DropTable(
+                name: "BotUsers");
 
             migrationBuilder.DropTable(
                 name: "Question");

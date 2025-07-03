@@ -8,7 +8,7 @@ public static class RefitConfig
 {
     public static void ConfigureHttpClients(this IServiceCollection services, WebAssemblyHostBuilder builder)
     {
-        services.AddHttpClient("https://concrete-mammoth-noticeably.ngrok-free.app/");
+        services.AddHttpClient();
         services.ConfigureHttpClientDefaults(o => {
             o.ConfigureHttpClient(c =>
                 c.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)); });

@@ -22,6 +22,7 @@ builder.Services.AddTransient<AuthenticationStateProvider>(
 builder.Services.AddTransient<IWhoAmIService, WhoAmIService>();
 builder.Services.AddTransient<IHrUserService, HrUserService>();
 builder.Services.AddTransient<ILogoutService, LogoutService>();
+builder.Services.AddTransient<IAuthService, AuthService>();
 
 builder.Services.AddAuthorizationCore();
 
