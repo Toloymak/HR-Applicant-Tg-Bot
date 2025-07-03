@@ -23,6 +23,7 @@ builder.Services.AddTransient<IWhoAmIService, WhoAmIService>();
 builder.Services.AddTransient<IHrUserService, HrUserService>();
 builder.Services.AddTransient<ILogoutService, LogoutService>();
 builder.Services.AddTransient<IAuthService, AuthService>();
+builder.Services.AddTransient<ICreateVacancy, VacanciesProvider>();
 
 builder.Services.AddAuthorizationCore();
 

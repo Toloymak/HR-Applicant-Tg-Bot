@@ -1,24 +1,22 @@
-using System.Diagnostics.CodeAnalysis;
 using Application.Extensions;
 using Application.Policies;
 using Domain.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 using Shared.Models;
 
-namespace Application.Endpoints;
+namespace Application.Endpoints.Vacancies;
 
-public class GetVacanciesListEndpoint : IEndpointDefinition
+public class GetVacanciesEndpoint : IEndpointDefinition
 {
     public static void Define(IEndpointRouteBuilder builder)
         => builder
             .MapGet("/api/vacancies", GetVacancies)
             .RequireAuthorizationPolicy(Policy.Manage.Name)
-            .WithDescription("Some test ");
-    
-    private static async Task<Results<Ok<PaginationResult<VacancyListItem>>, BadRequest<string>>> 
+            .WithDescription("Get vacancies list with pagination");
+
+    private static async Task<Results<Ok<PaginationResult<VacancyListItem>>, BadRequest<string>>>
         GetVacancies(
-            [AsParameters] Pagination pagination, 
+            [AsParameters] Pagination pagination,
             [AsParameters] VacancyListFilter filter,
             VacanciesRepository repository,
             CancellationToken ct = default)

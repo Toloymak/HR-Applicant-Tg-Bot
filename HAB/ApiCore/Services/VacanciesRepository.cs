@@ -2,6 +2,8 @@ using DataLayer.Contexts;
 using DataLayer.Dals;
 using Microsoft.EntityFrameworkCore;
 using Shared.Models;
+using Shared.Models.Requests;
+using LanguageExt;
 
 namespace Domain.Services;
 
@@ -48,5 +50,29 @@ public class VacanciesRepository
             TotalCount = totalCount,
             PageNumber = pagination.PageNumber
         };
+    }
+
+    public async Task<Either<Exception, Guid>> Create(
+        CreateVacancyRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var vacancy = new VacancyDal
+            {
+                Id = Guid.CreateVersion7(),
+                Title = request.Name,
+                Description = request.Description,
+                DefaultRejectText = request.DefaultRejectText,
+                FinishedApplicationText = request.DefaultAcceptedToReviewText,
+                CreatedAt = DateTime.UtcNow,
+            };
+            _context.Vacancies.Add(vacancy);
+            await _context.SaveChangesAsync(ct);
+            return vacancy.Id;
+        }
+        catch (Exception ex)
+        {
+            return ex;
+        }
     }
 } 

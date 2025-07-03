@@ -3,10 +3,11 @@ using Application.Client.RefitClients;
 using LanguageExt;
 using Shared.Models;
 using UiShared.Sercvies;
+using Shared.Models.Requests;
 
 namespace Application.Client.Services;
 
-internal class VacanciesProvider : IVacanciesProvider
+internal class VacanciesProvider : IVacanciesProvider, ICreateVacancy
 {
     private readonly IVacanciesClient _vacanciesClient;
 
@@ -21,5 +22,21 @@ internal class VacanciesProvider : IVacanciesProvider
         return await _vacanciesClient
             .GetVacancies(pagination, filter, ct)
             .ToEither();
+    }
+
+    public async Task<Either<Exception, Guid>> CreateVacancy(
+        CreateVacancyRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var response = await _vacanciesClient.CreateVacancy(request, ct);
+            if (response.IsSuccessStatusCode && response.Content != null)
+                return response.Content;
+            return new Exception(response.Error?.Message ?? "Unknown error");
+        }
+        catch (Exception ex)
+        {
+            return ex;
+        }
     }
 }

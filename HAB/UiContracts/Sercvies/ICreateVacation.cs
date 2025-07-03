@@ -3,9 +3,9 @@ using Shared.Models.Requests;
 
 namespace UiShared.Sercvies;
 
-public interface ICreateVacation
+public interface ICreateVacancy
 {
-    Task<Either<Exception, Guid>> CreateVacation(
-        CreateVacationRequest request,
+    Task<Either<Exception, Guid>> CreateVacancy(
+        CreateVacancyRequest request,
         CancellationToken ct);
 }

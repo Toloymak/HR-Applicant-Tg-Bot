@@ -2,10 +2,11 @@ using LanguageExt;
 using Shared.Models;
 using UiShared.Sercvies;
 using Domain.Services;
+using Shared.Models.Requests;
 
 namespace Application.UIServices;
 
-public class VacanciesProvider : IVacanciesProvider
+public class VacanciesProvider : IVacanciesProvider, ICreateVacancy
 {
     private readonly VacanciesRepository _repository;
 
@@ -28,5 +29,11 @@ public class VacanciesProvider : IVacanciesProvider
         {
             return ex;
         }
+    }
+
+    public async Task<Either<Exception, Guid>> CreateVacancy(
+        CreateVacancyRequest request, CancellationToken ct)
+    {
+        return await _repository.Create(request, ct);
     }
 }
