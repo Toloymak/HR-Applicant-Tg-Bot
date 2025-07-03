@@ -71,6 +71,7 @@ builder.Services.AddTransient<IHrUserProvider, HrUserProvider>();
 builder.Services.AddTransient<IHrUserService, HrUserService>();
 builder.Services.AddTransient<ILogoutService, LogoutService>();
 builder.Services.AddTransient<HrUserRepository>();
+builder.Services.AddTransient<VacanciesRepository>();
 
 builder.Services.AddTransient<IWhoAmIService, WhoAmI>();
 builder.Services.AddTransient<IAuthService, AuthService>();

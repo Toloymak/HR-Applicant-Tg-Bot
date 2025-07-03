@@ -12,7 +12,7 @@ public class HrBotContext : DbContext
         
     }
 
-    public DbSet<VacancyDal> Vacations => Set<VacancyDal>();
+    public DbSet<VacancyDal> Vacancies => Set<VacancyDal>();
     public DbSet<BotUserDal> BotUsers => Set<BotUserDal>();
     public DbSet<HrUserDal> HrUsers => Set<HrUserDal>();
     

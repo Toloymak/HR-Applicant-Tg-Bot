@@ -16,5 +16,10 @@ public class VacationConfiguration : IEntityTypeConfiguration<VacancyDal>
             .WithMany()
             .HasForeignKey(v => v.RootQuestionId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.HasOne(x => x.Hr)
+            .WithMany()
+            .HasForeignKey(x => x.HrId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

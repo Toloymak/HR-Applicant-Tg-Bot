@@ -6,8 +6,17 @@ public class VacancyDal
 {
     public Guid Id { get; set; }
 
-    public Guid HrId { get; set; }
+    public int? HrId { get; set; }
+    public HrUserDal? Hr { get; set; }
 
+    [MaxLength(1000)]
+    public required string Title { get; set; }
+    
+    [MaxLength(4000)]
+    public required string Description { get; set; }
+
+    public bool IsArchived { get; set; }
+    
     [MaxLength(4000)]
     public required string DefaultRejectText { get; set; }
 
@@ -17,6 +26,8 @@ public class VacancyDal
     // Navigation to root question
     public Guid? RootQuestionId { get; set; }
     public QuestionDal? RootQuestion { get; set; }
+    
+    public required DateTime CreatedAt { get; set; }
 
-    public ICollection<UserApplicationDal>? Applications { get; set; }
+    public HashSet<UserApplicationDal>? Applications { get; set; }
 }

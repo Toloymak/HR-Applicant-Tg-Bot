@@ -16,14 +16,18 @@ public class VacationCreator
 
     public async Task CreateVacation(CancellationToken ct)
     {
-        var randomUser = await _context.BotUsers.FirstAsync(ct);
+        var randomUser = await _context.HrUsers.FirstAsync(ct);
         
         var vacation = new VacancyDal
         {
             HrId = randomUser.Id,
             RootQuestion = null,
-            DefaultRejectText = "Thank you for your application! Unfortunately, we are looking for a candidate with a different skill set.",
+            DefaultRejectText =
+                "Thank you for your application! Unfortunately, we are looking for a candidate with a different skill set.",
             FinishedApplicationText = "Our HR will contact you soon!",
+            Title = "Test Vacancy",
+            Description = "This is a test vacancy created to demonstrate the application flow.",
+            CreatedAt = DateTime.UtcNow,
         };
         
         var driverLicenseQuestionId = new Guid("00000000-0000-0000-0000-000000000001");
