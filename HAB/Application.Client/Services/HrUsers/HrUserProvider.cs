@@ -1,5 +1,4 @@
 using Application.Client.Extensions;
-using Application.Client.Pages.Users;
 using Application.Client.RefitClients;
 using LanguageExt;
 using Shared.Models;

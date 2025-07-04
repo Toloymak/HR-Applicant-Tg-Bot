@@ -3,7 +3,7 @@ using Application.Client.RefitClients;
 using LanguageExt;
 using Shared.Models;
 using UiShared.Sercvies;
-using Shared.Models.Requests;
+using Shared.Models.Vacancies;
 
 namespace Application.Client.Services;
 

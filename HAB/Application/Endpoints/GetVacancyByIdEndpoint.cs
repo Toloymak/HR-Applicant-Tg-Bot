@@ -1,7 +1,6 @@
 using Application.Policies;
 using Domain.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 using Shared.Models;
 using Application.Extensions;
 

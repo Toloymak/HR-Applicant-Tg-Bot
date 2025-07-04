@@ -1,0 +1,48 @@
+@using Shared.Models
+
+
+<MudCard>
+    <MudCardContent Style="display: flex; flex-direction: column;">
+        <MudTextField Label="Name"
+                      @bind-Value="Question.Text"
+                      MaxLength="200"
+                      Margin="Margin.Normal"
+                      Required="true"/>
+
+        <MudSelect @bind-Value="Question.Type"
+                   Label="Type"
+                   Margin="Margin.Normal"
+                   Required="true">
+            <MudSelectItem Value="AnswerType.YesNo">Yes or no</MudSelectItem>
+            <MudSelectItem Value="AnswerType.Text">Text</MudSelectItem>
+        </MudSelect>
+    </MudCardContent>
+</MudCard>
+
+@if (Question.Answer is YesNoAnswer yesNoAnswer)
+{
+    <MudCheckBox @bind-Value="@yesNoAnswer.HasRequiredAnswer">Required ta have some value</MudCheckBox>
+
+    if (yesNoAnswer.RequiredAnswer is { } requiredAnswer)
+    {
+        <MudSelect @bind-Value="@requiredAnswer.ExpectedAnswer"
+                   Label="Expected answer"
+                   Margin="Margin.Normal">
+            <MudSelectItem Value="true">Yes</MudSelectItem>
+            <MudSelectItem Value="false">No</MudSelectItem>
+        </MudSelect>
+
+        <MudTextField @bind-Value="@requiredAnswer.UnexpectedAnswerRejectText"
+                      Label="Reject text for unexpected answer"
+                      Margin="Margin.Normal"
+                      MaxLength="1000"
+                      AutoGrow="true"/>
+    }
+}
+
+@code{
+
+    [Parameter, EditorRequired]
+    public QuestionEdit Question { get; set; } = null!;
+
+}

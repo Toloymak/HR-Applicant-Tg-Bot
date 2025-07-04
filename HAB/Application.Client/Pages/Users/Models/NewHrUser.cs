@@ -1,4 +1,4 @@
-namespace Application.Client.Pages.Users;
+namespace Application.Client.Pages.Users.Models;
 
 public record NewHrUser
 {

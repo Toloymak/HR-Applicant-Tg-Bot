@@ -1,4 +1,3 @@
-using Application.Client.Pages.Users;
 using Refit;
 using Shared.Models;
 using Shared.Models.HrUsers;

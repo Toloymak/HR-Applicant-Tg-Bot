@@ -1,5 +1,5 @@
 using LanguageExt;
-using Shared.Models.Requests;
+using Shared.Models.Vacancies;
 
 namespace UiShared.Sercvies;
 

@@ -2,8 +2,8 @@ using DataLayer.Contexts;
 using DataLayer.Dals;
 using Microsoft.EntityFrameworkCore;
 using Shared.Models;
-using Shared.Models.Requests;
 using LanguageExt;
+using Shared.Models.Vacancies;
 
 namespace Domain.Services;
 

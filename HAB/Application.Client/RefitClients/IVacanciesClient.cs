@@ -1,6 +1,6 @@
 using Refit;
 using Shared.Models;
-using Shared.Models.Requests;
+using Shared.Models.Vacancies;
 
 namespace Application.Client.RefitClients;
 

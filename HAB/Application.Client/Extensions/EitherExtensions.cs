@@ -1,6 +1,5 @@
 using LanguageExt;
 using Refit;
-using Shared.Models;
 
 namespace Application.Client.Extensions;
 

@@ -1,4 +1,4 @@
-using Application.Client.Pages.Users;
+using Application.Client.Pages.Users.Models;
 using Application.Client.Services.HrUsers;
 using LanguageExt;
 

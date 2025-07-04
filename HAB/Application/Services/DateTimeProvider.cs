@@ -1,4 +1,4 @@
-namespace UKG.HCM.Application.Services;
+namespace Application.Services;
 
 /// Provides the current date and time
 public interface IProvideCurrentDateTime

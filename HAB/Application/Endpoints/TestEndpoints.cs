@@ -1,7 +1,6 @@
 using Application.Extensions;
 using Application.Policies;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Application.Endpoints;
 

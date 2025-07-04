@@ -1,10 +1,5 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
-
-
 using var cts = new CancellationTokenSource();
 
 
@@ -15,9 +10,12 @@ cts.Cancel();
 
 
 
-enum Step
+namespace CandidateTgBot
 {
-    None,
-    WaitingForAspNet,
-    WaitingForRussian
+    enum Step
+    {
+        None,
+        WaitingForAspNet,
+        WaitingForRussian
+    }
 }

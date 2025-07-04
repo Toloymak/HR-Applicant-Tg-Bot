@@ -7,4 +7,8 @@ public class NewVacancy
     
     public string DefaultRejectText { get; set; } = String.Empty;
     public string DefaultAcceptedToReviewText { get; set; } = String.Empty;
+    
+    public List<QuestionEdit> Questions { get; set; } = [];
+    
+    public void AddNewQuestion() => Questions.Add(QuestionEdit.NewQuestion());
 }

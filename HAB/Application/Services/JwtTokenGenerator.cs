@@ -1,14 +1,12 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Application.Services;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Shared.Models.HrUsers;
 using Shared.Models.Requests;
-using UKG.HCM.Application.Services;
 
-namespace UKG.HCM.WebApi.Services;
+namespace Application.Services;
 
 
 public interface IJwtTokenGenerator

@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace Shared;
+namespace Shared.Extensions;
 
 public static class ClaimExtensions
 {

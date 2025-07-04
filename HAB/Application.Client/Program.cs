@@ -1,11 +1,9 @@
 using Application.Client.Configurations;
-using Application.Client.RefitClients;
 using Application.Client.Services;
 using Application.Client.Services.HrUsers;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
-using Refit;
 using UiShared.Sercvies;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);

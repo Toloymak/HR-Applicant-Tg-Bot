@@ -1,13 +1,6 @@
-using Application.Client.Services.HrUsers;
+using Application.Services;
 using Domain.Services;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Shared.Models.Requests;
-using Shared.Models.Responses;
-using Telegram.Bot;
-using UKG.HCM.WebApi.Services;
 
 namespace Application.Endpoints;
 

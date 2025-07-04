@@ -3,7 +3,7 @@ using Application.Policies;
 using Domain.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Models.Requests;
+using Shared.Models.Vacancies;
 
 namespace Application.Endpoints.Vacancies;
 

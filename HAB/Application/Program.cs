@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using System.Text;
 using Application.Client.Services;
 using Application.Client.Services.HrUsers;
@@ -8,7 +7,6 @@ using Application.HostedSevices;
 using Application.Policies;
 using Application.Services;
 using Application.UIServices;
-using CandidateTgBot;
 using CandidateTgBot.Services;
 using DataLayer.Contexts;
 using Domain.Options;
@@ -20,8 +18,6 @@ using Microsoft.IdentityModel.Tokens;
 using MudBlazor.Services;
 using Telegram.Bot;
 using UiShared.Sercvies;
-using UKG.HCM.Application.Services;
-using UKG.HCM.WebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

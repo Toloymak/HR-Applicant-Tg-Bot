@@ -1,8 +1,6 @@
-﻿@using Application.Client.Constants.Links
-@using Application.Client.Pages.Vacancy
-@using Microsoft.AspNetCore.Components.Authorization
+﻿@using Microsoft.AspNetCore.Components.Authorization
 @using Application.Client.Components.Auth
-@using Shared
+@using Shared.Extensions
 @inherits LayoutComponentBase
 
 <MudThemeProvider Theme="Theme"/>
@@ -82,7 +80,11 @@
             H3 = new H3Typography()
             {
                 FontSize = "32px"
-            }
+            },
+            H4 = new H4Typography()
+            {
+                FontSize = "24px"
+            },
         },
     };
 
