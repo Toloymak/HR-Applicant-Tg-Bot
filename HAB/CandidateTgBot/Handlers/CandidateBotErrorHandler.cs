@@ -3,11 +3,11 @@ using Telegram.Bot;
 
 namespace CandidateTgBot.Handlers;
 
-public class ErrorHandler
+public class CandidateBotErrorHandler
 {
-    private readonly ILogger<ErrorHandler> _logger;
+    private readonly ILogger<CandidateBotErrorHandler> _logger;
 
-    public ErrorHandler(ILogger<ErrorHandler> logger)
+    public CandidateBotErrorHandler(ILogger<CandidateBotErrorHandler> logger)
     {
         _logger = logger;
     }

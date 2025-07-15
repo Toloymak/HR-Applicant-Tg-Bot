@@ -34,13 +34,13 @@ public class CandidateBotService
         _botClient.StartReceiving(async (client, update, token) =>
             {
                 using var scope = _serviceProvider.CreateScope();
-                var handler = scope.ServiceProvider.GetRequiredService<MessageHandler>();
+                var handler = scope.ServiceProvider.GetRequiredService<CandidateBotMessageHandler>();
                 await handler.HandleUpdateAsync(client, update, token);
             },
             async (client, exception, token) =>
             {
                 using var scope = _serviceProvider.CreateScope();
-                var handler = scope.ServiceProvider.GetRequiredService<ErrorHandler>();
+                var handler = scope.ServiceProvider.GetRequiredService<CandidateBotErrorHandler>();
                 await handler.HandleErrorAsync(client, exception, token);
             },
             cancellationToken: ct

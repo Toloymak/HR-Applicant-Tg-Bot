@@ -15,11 +15,10 @@ public class CandidateBotHostedService : IHostedService
         _botService = botService;
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Starting Candidate Bot Hosted Service...");
-        _botService.Start(cancellationToken);
-        return Task.CompletedTask;
+        await _botService.Start(cancellationToken);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

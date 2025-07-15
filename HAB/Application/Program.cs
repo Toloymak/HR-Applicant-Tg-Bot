@@ -8,6 +8,7 @@ using Application.HostedSevices;
 using Application.Policies;
 using Application.Services;
 using Application.UIServices;
+using CandidateTgBot.Handlers;
 using CandidateTgBot.Services;
 using DataLayer.Contexts;
 using Domain.Options;
@@ -75,6 +76,9 @@ builder.Services.AddTransient<IWhoAmIService, WhoAmI>();
 builder.Services.AddTransient<IAuthService, AuthService>();
 builder.Services.AddTransient<ICreateVacancy, VacanciesProvider>();
 builder.Services.AddTransient<IEditVacancy, VacanciesProvider>();
+
+builder.Services.AddTransient<CandidateBotMessageHandler>();
+builder.Services.AddTransient<CandidateBotErrorHandler>();
 
 builder.Services.Configure<JsonOptions>(options =>
 {
