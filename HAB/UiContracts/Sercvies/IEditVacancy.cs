@@ -5,5 +5,6 @@ namespace UiShared.Sercvies;
 
 public interface IEditVacancy
 {
-    Task<Either<Exception, Guid>> EditVacancy(EditVacancyRequest request, CancellationToken ct);
+    Task<Either<Exception, Guid>> EditVacancy(
+        EditVacancyRequest request, CancellationToken ct);
 } 

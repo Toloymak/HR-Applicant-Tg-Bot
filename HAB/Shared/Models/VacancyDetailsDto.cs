@@ -1,3 +1,5 @@
+using Shared.Models.Vacancies;
+
 namespace Shared.Models;
 
 public record VacancyDetailsDto
@@ -10,5 +12,5 @@ public record VacancyDetailsDto
     public required DateTime CreatedAt { get; init; }
     public required string DefaultRejectText { get; init; }
     public required string DefaultAcceptedToReviewText { get; init; }
-    // Add more fields as needed for display
+    public required IReadOnlyCollection<VacancyQuestionDto> Questions { get; init; }
 } 

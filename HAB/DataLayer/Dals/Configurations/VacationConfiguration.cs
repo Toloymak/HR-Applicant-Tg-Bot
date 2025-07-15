@@ -11,15 +11,15 @@ public class VacationConfiguration : IEntityTypeConfiguration<VacancyDal>
 
         builder.Property(v => v.DefaultRejectText).IsRequired();
         builder.Property(v => v.FinishedApplicationText).IsRequired();
-
-        builder.HasOne(v => v.RootQuestion)
-            .WithMany()
-            .HasForeignKey(v => v.RootQuestionId)
-            .OnDelete(DeleteBehavior.Restrict);
         
         builder.HasOne(x => x.Hr)
             .WithMany()
             .HasForeignKey(x => x.HrId)
             .OnDelete(DeleteBehavior.SetNull);
+        
+        builder.HasMany(x => x.Questions)
+            .WithOne()
+            .HasForeignKey(x => x.VacancyId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

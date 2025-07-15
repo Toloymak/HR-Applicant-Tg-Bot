@@ -11,4 +11,24 @@ public class NewVacancy
     public List<QuestionEdit> Questions { get; set; } = [];
     
     public void AddNewQuestion() => Questions.Add(QuestionEdit.NewQuestion());
+    
+    public void ReorderQuestions()
+    {
+        var newList = new List<QuestionEdit>();
+        var order = 1;
+
+        foreach (var question in Questions.OrderBy(x => x.OrderNumber))
+        {
+            question.OrderNumber = order++;
+            newList.Add(question);
+        }
+        
+        Questions = newList;
+    }
+
+    public void RemoveQuestion(QuestionEdit question)
+    {
+        Questions.Remove(question);
+        ReorderQuestions();
+    }
 }

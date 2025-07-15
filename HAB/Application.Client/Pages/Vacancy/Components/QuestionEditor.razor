@@ -1,6 +1,5 @@
 @using Shared.Models
 
-
 <MudCard>
     <MudCardContent Style="display: flex; flex-direction: column;">
         <MudTextField Label="Name"
@@ -10,39 +9,62 @@
                       Required="true"/>
 
         <MudSelect @bind-Value="Question.Type"
+                   @bind-Value:after="Question.SetAnswerBasedOnType"
                    Label="Type"
                    Margin="Margin.Normal"
                    Required="true">
             <MudSelectItem Value="AnswerType.YesNo">Yes or no</MudSelectItem>
             <MudSelectItem Value="AnswerType.Text">Text</MudSelectItem>
         </MudSelect>
+
+        <MudTextField Label="Order"
+                      @bind-Value="Question.OrderNumber"
+                      @bind-Value:after="OrderChanged.InvokeAsync"
+                      MaxLength="200"
+                      Margin="Margin.Normal"
+                      Required="true"/>
+
+        @if (Question.Answer is YesNoAnswer yesNoAnswer)
+        {
+            <MudCheckBox @bind-Value="@yesNoAnswer.HasRequiredAnswer">
+                Required ta have some value
+            </MudCheckBox>
+
+            if (yesNoAnswer.RequiredAnswer is { } requiredAnswer)
+            {
+                <MudSelect @bind-Value="@requiredAnswer.ExpectedAnswer"
+                           Label="Expected answer"
+                           Margin="Margin.Normal">
+                    <MudSelectItem Value="true">Yes</MudSelectItem>
+                    <MudSelectItem Value="false">No</MudSelectItem>
+                </MudSelect>
+
+                <MudTextField @bind-Value="@requiredAnswer.UnexpectedAnswerRejectText"
+                              Label="Reject text for unexpected answer"
+                              Margin="Margin.Normal"
+                              MaxLength="1000"
+                              AutoGrow="true"/>
+            }
+        }
     </MudCardContent>
+    
+    <MudCardActions>
+        <MudLink Color="Color.Warning"
+                 OnClick="() => Delete.InvokeAsync(Question)">
+            Delete
+        </MudLink>
+    </MudCardActions>
 </MudCard>
 
-@if (Question.Answer is YesNoAnswer yesNoAnswer)
-{
-    <MudCheckBox @bind-Value="@yesNoAnswer.HasRequiredAnswer">Required ta have some value</MudCheckBox>
-
-    if (yesNoAnswer.RequiredAnswer is { } requiredAnswer)
-    {
-        <MudSelect @bind-Value="@requiredAnswer.ExpectedAnswer"
-                   Label="Expected answer"
-                   Margin="Margin.Normal">
-            <MudSelectItem Value="true">Yes</MudSelectItem>
-            <MudSelectItem Value="false">No</MudSelectItem>
-        </MudSelect>
-
-        <MudTextField @bind-Value="@requiredAnswer.UnexpectedAnswerRejectText"
-                      Label="Reject text for unexpected answer"
-                      Margin="Margin.Normal"
-                      MaxLength="1000"
-                      AutoGrow="true"/>
-    }
-}
 
 @code{
 
     [Parameter, EditorRequired]
     public QuestionEdit Question { get; set; } = null!;
 
+    [Parameter, EditorRequired]
+    public EventCallback OrderChanged { get; set; }
+    
+    [Parameter, EditorRequired]
+    public EventCallback<QuestionEdit> Delete { get; set; }
 }

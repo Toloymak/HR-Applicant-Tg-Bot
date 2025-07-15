@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace DataLayer.Dals;
 
 public class ConditionDal
@@ -7,20 +9,20 @@ public class ConditionDal
     public Guid QuestionId { get; set; }
     public QuestionDal? Question { get; set; }
 
-    // [MaxLength(4000)]
-    // public required AnswerCondition Answer { get; set; } 
+    [MaxLength(4000)]
+    public required IAnswerCondition Answer { get; set; } 
 
     public bool IsCritical { get; set; }
 
     public bool? CriticalText { get; set; }
 }
 
-public abstract record AnswerCondition
+public interface IAnswerCondition
 {
     
 }
 
-public record YesNoAnswerCondition : AnswerCondition
+public record YesNoAnswerCondition : IAnswerCondition
 {
     public required bool Answer { get; set; }
 }

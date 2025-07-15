@@ -56,7 +56,7 @@ public enum AnswerType
 {
     Text,
     YesNo,
-    OneOf,
+    // OneOf,
 }
 
 public record UserApplication

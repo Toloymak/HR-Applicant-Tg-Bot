@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization.Metadata;
 using Application.Client.Services;
 using Application.Client.Services.HrUsers;
 using Application.Components;
@@ -12,6 +13,7 @@ using DataLayer.Contexts;
 using Domain.Options;
 using Domain.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -73,6 +75,12 @@ builder.Services.AddTransient<IWhoAmIService, WhoAmI>();
 builder.Services.AddTransient<IAuthService, AuthService>();
 builder.Services.AddTransient<ICreateVacancy, VacanciesProvider>();
 builder.Services.AddTransient<IEditVacancy, VacanciesProvider>();
+
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.TypeInfoResolverChain
+        .Insert(0, new DefaultJsonTypeInfoResolver());
+});
 
 var jwt = builder.Configuration.GetSection("Jwt").GetSection("SigningKey").Value
     ?? throw new InvalidOperationException("JWT Signing Key is not configured.");

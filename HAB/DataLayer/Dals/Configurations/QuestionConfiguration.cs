@@ -1,3 +1,5 @@
+using DataLayer.Converters;
+using DataLayer.Convertes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,9 +12,12 @@ public class QuestionConfiguration : IEntityTypeConfiguration<QuestionDal>
         builder.HasKey(q => q.Id);
         builder.Property(q => q.Text).IsRequired();
 
-        builder.HasOne(q => q.NextQuestion)
-            .WithMany()
-            .HasForeignKey(q => q.NextQuestionId)
-            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.Vacancy)
+        .WithMany(v => v.Questions)
+        .HasForeignKey(x => x.VacancyId)
+        .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Property(e => e.Answer)
+            .HasConversion<AnswerTypeValueConverter>();
     }
 }

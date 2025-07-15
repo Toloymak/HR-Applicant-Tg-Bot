@@ -23,11 +23,9 @@ public class VacancyDal
     [MaxLength(4000)]
     public required string FinishedApplicationText { get; set; }
 
-    // Navigation to root question
-    public Guid? RootQuestionId { get; set; }
-    public QuestionDal? RootQuestion { get; set; }
+    public ICollection<QuestionDal>? Questions { get; set; }
     
     public required DateTime CreatedAt { get; set; }
 
-    public HashSet<UserApplicationDal>? Applications { get; set; }
+    public ICollection<UserApplicationDal>? Applications { get; set; }
 }

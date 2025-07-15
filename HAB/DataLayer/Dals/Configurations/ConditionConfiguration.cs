@@ -8,11 +8,13 @@ public class ConditionConfiguration : IEntityTypeConfiguration<ConditionDal>
     public void Configure(EntityTypeBuilder<ConditionDal> builder)
     {
         builder.HasKey(c => c.Id);
-        // builder.Property(c => c.Answer).IsRequired();
+        builder.Property(c => c.Answer)
+            .HasConversion<DataLayer.Converters.ConditionAnswerValueConverter>()
+            .IsRequired();
 
         builder.HasOne(c => c.Question)
-            .WithMany(q => q.Conditions)
-            .HasForeignKey(c => c.QuestionId)
-            .OnDelete(DeleteBehavior.Cascade);
+        .WithMany(q => q.Conditions)
+        .HasForeignKey(c => c.QuestionId)
+        .OnDelete(DeleteBehavior.Cascade);
     }
 }

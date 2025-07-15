@@ -10,7 +10,7 @@ public class UserApplicationDal
     public VacancyDal? Vacancy { get; set; }
 
     public Guid? LastQuestionId { get; set; }
-    public Question? LastQuestion { get; set; }
+    public QuestionDal? LastQuestion { get; set; }
 
     public ApplicationStatus State { get; set; }
 

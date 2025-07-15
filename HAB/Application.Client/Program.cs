@@ -1,8 +1,10 @@
+using System.Text.Json.Serialization.Metadata;
 using Application.Client.Configurations;
 using Application.Client.Services;
 using Application.Client.Services.HrUsers;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.AspNetCore.Http.Json;
 using MudBlazor.Services;
 using UiShared.Sercvies;
 
@@ -23,6 +25,12 @@ builder.Services.AddTransient<ILogoutService, LogoutService>();
 builder.Services.AddTransient<IAuthService, AuthService>();
 builder.Services.AddTransient<ICreateVacancy, VacanciesProvider>();
 builder.Services.AddTransient<IEditVacancy, VacanciesProvider>();
+
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.TypeInfoResolverChain
+        .Insert(0, new DefaultJsonTypeInfoResolver());
+});
 
 builder.Services.AddAuthorizationCore();
 

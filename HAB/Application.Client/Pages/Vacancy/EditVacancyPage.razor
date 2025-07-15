@@ -2,6 +2,7 @@
 @using Application.Client.Constants.Links
 @using UiShared.Sercvies
 @using Application.Client.Pages.Vacancy.Components
+@using Shared.Models
 @using Shared.Models.Vacancies
 @inject IEditVacancy EditVacancyService
 @inject NavigationManager Navigation
@@ -35,16 +36,38 @@
         @* </div> *@
     </div>
 
-    @foreach (var question in _vacancy.Questions)
+    
+    @foreach (var question in _vacancy.Questions.OrderBy(x => x.OrderNumber))
     {
-        <QuestionEditor Question="@question"/>
+        <QuestionEditor Question="@question"
+                        OrderChanged="_vacancy.ReorderQuestions"
+                        Delete="_vacancy.RemoveQuestion"/>
     }
+    
+    <div style="display: flex;">
+        <MudSpacer/>
+        @* <div> *@
+        <MudButton Color="Color.Primary"
+                   OnClick="_vacancy.AddNewQuestion"
+                   Variant="Variant.Filled"
+                   Size="Size.Small">
+            Add question
+        </MudButton>
+        @* </div> *@
+    </div>
+    
 
     <MudCard>
         <MudCardActions Style="justify-content: end; gap: 30px;">
-            <MudButton OnClick="OnBack" Color="Color.Secondary" Variant="Variant.Text">Back</MudButton>
-            <MudButton OnClick="OnClear" Color="Color.Warning" Variant="Variant.Filled">Clear</MudButton>
-            <MudButton OnClick="OnEdit" Color="Color.Primary" Variant="Variant.Filled">Save</MudButton>
+            <MudButton OnClick="OnBack" Color="Color.Secondary" Variant="Variant.Text">
+                Back
+            </MudButton>
+            <MudButton OnClick="OnReset" Color="Color.Warning" Variant="Variant.Filled">
+                Reset
+            </MudButton>
+            <MudButton OnClick="OnEdit" Color="Color.Primary" Variant="Variant.Filled">
+                Save
+            </MudButton>
         </MudCardActions>
     </MudCard>
     </MudStack>
@@ -61,25 +84,55 @@
         var result = await VacanciesProvider.GetVacancyById(Id, CancellationToken.None);
         result.Match(
             vacancy => {
-                _vacancy = new VacancyEdit
-                {
-                    Id = vacancy.Id,
-                    Title = vacancy.Title,
-                    Description = vacancy.Description,
-                    DefaultAcceptedToReviewText = vacancy.DefaultAcceptedToReviewText,
-                    DefaultRejectText = vacancy.DefaultRejectText
-                };
-                _original = new VacancyEdit
-                {
-                    Id = vacancy.Id,
-                    Title = vacancy.Title,
-                    Description = vacancy.Description,
-                    DefaultAcceptedToReviewText = vacancy.DefaultAcceptedToReviewText,
-                    DefaultRejectText = vacancy.DefaultRejectText
-                };
+                _vacancy = GetEditModel(vacancy);
+                _original = GetEditModel(vacancy);
             },
             ex => Snackbar.Add($"Error loading vacancy: {ex.Message}", Severity.Error)
         );
+    }
+
+    private static VacancyEdit GetEditModel(VacancyDetailsDto vacancy)
+    {
+        Console.WriteLine(vacancy.Questions.FirstOrDefault()?.Answer.ToString() ?? "No questions found");
+        var edit = new VacancyEdit
+        {
+            Id = vacancy.Id,
+            Title = vacancy.Title,
+            Description = vacancy.Description,
+            DefaultAcceptedToReviewText = vacancy.DefaultAcceptedToReviewText,
+            DefaultRejectText = vacancy.DefaultRejectText,
+            Questions = vacancy.Questions.Select(q =>
+                new QuestionEdit
+                (
+                    id: q.Id,
+                    text: q.Text,
+                    orderNumber: q.OrderNumber,
+                    answer: q.Answer switch
+                    {
+                        TextQuestionAnswerDto => new TextAnswer(),
+                        YesNoQuestionAnswerDto =>
+                            new YesNoAnswer
+                            {
+                                HasRequiredAnswer = false,
+                                RequiredAnswer = null
+                            },
+                        YesNoWithRequiredCorrectQuestionAnswerDto yesNoWithRequired =>
+                            new YesNoAnswer
+                            {
+                                HasRequiredAnswer = true,
+                                RequiredAnswer = new YesNoAnswer.RequiredAnswerProperties()
+                                {
+                                    ExpectedAnswer = yesNoWithRequired.Expected,
+                                    UnexpectedAnswerRejectText = yesNoWithRequired.UnexpectedAnswerRejectText
+                                },
+                            },
+                        _ => throw new ArgumentOutOfRangeException()
+                    })
+            ).ToList()
+        };
+        
+        Console.WriteLine(edit.Questions.FirstOrDefault()?.Answer.ToString() ?? "No questions found in edit model");
+        return edit;
     }
 
     private async Task OnEdit()
@@ -96,15 +149,14 @@
             Description = _vacancy.Description,
             DefaultAcceptedToReviewText = _vacancy.DefaultAcceptedToReviewText,
             DefaultRejectText = _vacancy.DefaultRejectText,
-            Questions = _vacancy.Questions.Select(q => new VacancyQuestion
+            Questions = _vacancy.Questions.Select(q => new VacancyQuestionDto()
             {
                 Id = q.Id,
                 Text = q.Text,
+                OrderNumber = q.OrderNumber,
                 Answer = q.Answer.MapToDto()
             }).ToList()
         };
-
-        
         
         var result = await EditVacancyService.EditVacancy(request, CancellationToken.None);
         result.Match(
@@ -117,7 +169,7 @@
         );
     }
 
-    private void OnClear()
+    private void OnReset()
     {
         if (_original is not null)
             _vacancy = new VacancyEdit
@@ -126,7 +178,11 @@
                 Title = _original.Title,
                 Description = _original.Description,
                 DefaultAcceptedToReviewText = _original.DefaultAcceptedToReviewText,
-                DefaultRejectText = _original.DefaultRejectText
+                DefaultRejectText = _original.DefaultRejectText,
+                Questions = _original.Questions.Select(q => q with
+                {
+                    Answer = q.Answer.Copy()
+                }).ToList()
             };
     }
 

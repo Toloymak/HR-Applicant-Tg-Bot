@@ -26,40 +26,6 @@ namespace DataLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Question",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Text = table.Column<string>(type: "text", nullable: false),
-                    Answer = table.Column<int>(type: "integer", nullable: false),
-                    NextQuestionId = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Question", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Questions",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Text = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: false),
-                    Answer = table.Column<int>(type: "integer", nullable: false),
-                    NextQuestionId = table.Column<Guid>(type: "uuid", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Questions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Questions_Questions_NextQuestionId",
-                        column: x => x.NextQuestionId,
-                        principalTable: "Questions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "HrUsers",
                 columns: table => new
                 {
@@ -81,24 +47,54 @@ namespace DataLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Condition",
+                name: "Vacancies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    QuestionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Answer = table.Column<string>(type: "text", nullable: false),
-                    IsCritical = table.Column<bool>(type: "boolean", nullable: false),
-                    CriticalText = table.Column<string>(type: "text", nullable: false)
+                    HrId = table.Column<int>(type: "integer", nullable: true),
+                    Title = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
+                    Description = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: false),
+                    IsArchived = table.Column<bool>(type: "boolean", nullable: false),
+                    DefaultRejectText = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: false),
+                    FinishedApplicationText = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Condition", x => x.Id);
+                    table.PrimaryKey("PK_Vacancies", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Condition_Question_QuestionId",
-                        column: x => x.QuestionId,
-                        principalTable: "Question",
+                        name: "FK_Vacancies_HrUsers_HrId",
+                        column: x => x.HrId,
+                        principalTable: "HrUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Questions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Text = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: false),
+                    VacancyId = table.Column<Guid>(type: "uuid", nullable: false),
+                    VacancyId1 = table.Column<Guid>(type: "uuid", nullable: true),
+                    OrderNumber = table.Column<int>(type: "integer", nullable: false),
+                    Answer = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Questions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Questions_Vacancies_VacancyId",
+                        column: x => x.VacancyId,
+                        principalTable: "Vacancies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Questions_Vacancies_VacancyId1",
+                        column: x => x.VacancyId1,
+                        principalTable: "Vacancies",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -107,6 +103,7 @@ namespace DataLayer.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     QuestionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Answer = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: false),
                     IsCritical = table.Column<bool>(type: "boolean", nullable: false),
                     CriticalText = table.Column<bool>(type: "boolean", nullable: true)
                 },
@@ -122,27 +119,6 @@ namespace DataLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Vacations",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    HrId = table.Column<Guid>(type: "uuid", nullable: false),
-                    DefaultRejectText = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: false),
-                    FinishedApplicationText = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: false),
-                    RootQuestionId = table.Column<Guid>(type: "uuid", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Vacations", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Vacations_Questions_RootQuestionId",
-                        column: x => x.RootQuestionId,
-                        principalTable: "Questions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "UserApplications",
                 columns: table => new
                 {
@@ -155,15 +131,15 @@ namespace DataLayer.Migrations
                 {
                     table.PrimaryKey("PK_UserApplications", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_UserApplications_Question_LastQuestionId",
+                        name: "FK_UserApplications_Questions_LastQuestionId",
                         column: x => x.LastQuestionId,
-                        principalTable: "Question",
+                        principalTable: "Questions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_UserApplications_Vacations_VacancyId",
+                        name: "FK_UserApplications_Vacancies_VacancyId",
                         column: x => x.VacancyId,
-                        principalTable: "Vacations",
+                        principalTable: "Vacancies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -199,6 +175,11 @@ namespace DataLayer.Migrations
                 columns: new[] { "Id", "TgId", "TgName" },
                 values: new object[] { new Guid("d2f8b0c4-3c1e-4b5a-9f6e-7c8d9e0f1a2b"), "319556101", "brovko_a" });
 
+            migrationBuilder.InsertData(
+                table: "HrUsers",
+                columns: new[] { "Id", "Alias", "BotUserId", "Position" },
+                values: new object[] { 1, "TECH BOSS", new Guid("d2f8b0c4-3c1e-4b5a-9f6e-7c8d9e0f1a2b"), "Head of Technology" });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Answers_QuestionId",
                 table: "Answers",
@@ -208,11 +189,6 @@ namespace DataLayer.Migrations
                 name: "IX_Answers_UserApplicationId",
                 table: "Answers",
                 column: "UserApplicationId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Condition_QuestionId",
-                table: "Condition",
-                column: "QuestionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Conditions_QuestionId",
@@ -226,9 +202,14 @@ namespace DataLayer.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Questions_NextQuestionId",
+                name: "IX_Questions_VacancyId",
                 table: "Questions",
-                column: "NextQuestionId");
+                column: "VacancyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Questions_VacancyId1",
+                table: "Questions",
+                column: "VacancyId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserApplications_LastQuestionId",
@@ -241,9 +222,9 @@ namespace DataLayer.Migrations
                 column: "VacancyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Vacations_RootQuestionId",
-                table: "Vacations",
-                column: "RootQuestionId");
+                name: "IX_Vacancies_HrId",
+                table: "Vacancies",
+                column: "HrId");
         }
 
         /// <inheritdoc />
@@ -253,28 +234,22 @@ namespace DataLayer.Migrations
                 name: "Answers");
 
             migrationBuilder.DropTable(
-                name: "Condition");
-
-            migrationBuilder.DropTable(
                 name: "Conditions");
-
-            migrationBuilder.DropTable(
-                name: "HrUsers");
 
             migrationBuilder.DropTable(
                 name: "UserApplications");
 
             migrationBuilder.DropTable(
-                name: "BotUsers");
-
-            migrationBuilder.DropTable(
-                name: "Question");
-
-            migrationBuilder.DropTable(
-                name: "Vacations");
-
-            migrationBuilder.DropTable(
                 name: "Questions");
+
+            migrationBuilder.DropTable(
+                name: "Vacancies");
+
+            migrationBuilder.DropTable(
+                name: "HrUsers");
+
+            migrationBuilder.DropTable(
+                name: "BotUsers");
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Data;
 using DataLayer.Contexts;
 using DataLayer.Dals;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +28,7 @@ public class VacanciesRepository
 
         var query = _context.Vacancies
             .AsNoTracking()
-            .Where(x => filter.IncludeArchived || !x.IsArchived) 
+            .Where(x => filter.IncludeArchived || !x.IsArchived)
             .Select(x => new VacancyListItem
             {
                 Id = x.Id,
@@ -65,6 +66,15 @@ public class VacanciesRepository
                 DefaultRejectText = request.DefaultRejectText,
                 FinishedApplicationText = request.DefaultAcceptedToReviewText,
                 CreatedAt = DateTime.UtcNow,
+                Questions = request.Questions
+                    .Select(question => new QuestionDal
+                    {
+                        Id = question.Id ?? Guid.CreateVersion7(),
+                        Text = question.Text,
+                        OrderNumber = question.OrderNumber,
+                        Answer = MapToDal(question.Answer),
+                    })
+                    .ToHashSet()
             };
             _context.Vacancies.Add(vacancy);
             await _context.SaveChangesAsync(ct);
@@ -76,46 +86,94 @@ public class VacanciesRepository
         }
     }
 
+    private IAnswerTypeDal MapToDal(IQuestionAnswerDto questionAnswer)
+        => questionAnswer switch
+        {
+            TextQuestionAnswerDto => new TextAnswerTypeDal(),
+            YesNoQuestionAnswerDto => new YesNoAnswerTypeDal(),
+            YesNoWithRequiredCorrectQuestionAnswerDto yesNoWithRequired => new YesNoWithRequiredCorrectAnswerTypeDal()
+            {
+                Expected = yesNoWithRequired.Expected,
+                UnexpectedAnswerRejectText = yesNoWithRequired.UnexpectedAnswerRejectText
+            },
+            _ => throw new ArgumentException("Unknown question answer type", nameof(questionAnswer))
+        };
+
     public async Task<Either<Exception, Guid>> Edit(EditVacancyRequest request, CancellationToken ct)
     {
         try
         {
-            var vacancy = await _context.Vacancies.FindAsync(new object[] { request.Id }, ct);
+            using var trans = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+            var vacancy = await _context.Vacancies
+                .Include(v => v.Questions)
+                .FirstOrDefaultAsync(v => v.Id == request.Id, ct);
+
             if (vacancy == null)
                 return new Exception("Vacancy not found");
+
             vacancy.Title = request.Name;
             vacancy.Description = request.Description;
             vacancy.DefaultRejectText = request.DefaultRejectText;
             vacancy.FinishedApplicationText = request.DefaultAcceptedToReviewText;
-            await _context.SaveChangesAsync(ct);
-            return vacancy.Id;
-        }
-        catch (Exception ex)
-        {
-            return ex;
-        }
-    }
 
-    public async Task<Either<Exception, VacancyListItem>> GetById(Guid id, CancellationToken ct)
-    {
-        try
-        {
-            var vacancy = await _context.Vacancies
-                .AsNoTracking()
-                .Where(x => x.Id == id)
-                .Select(x => new VacancyListItem
+            // _context.Add(new QuestionDal()
+            // {
+            //     Id = Guid.CreateVersion7(),
+            //     Text = "New question",
+            //     OrderNumber = 1,
+            //     VacancyId = vacancy.Id,
+            //     // Answer = new TextAnswerTypeDal()
+            // });
+
+            // --- Questions update logic ---
+            var incomingQuestions = request.Questions.ToList();
+            var existingQuestions = vacancy.Questions!.ToList();
+
+            // Remove questions not present in the request
+            var incomingIds = incomingQuestions.Where(q => q.Id.HasValue)
+                .Select(q => q.Id)
+                .Cast<Guid>()
+                .ToHashSet();
+            var toRemove = existingQuestions
+                .Where(q => !incomingIds.Contains(q.Id))
+                .ToList();
+            foreach (var q in toRemove)
+            {
+                _context.Remove(q);
+            }
+
+            // Update existing and add new
+            foreach (var incoming in incomingQuestions)
+            {
+                if (incoming.Id.HasValue)
                 {
-                    Id = x.Id,
-                    Title = x.Title,
-                    HrId = x.HrId,
-                    HrName = x.Hr != null ? x.Hr.Alias : null,
-                    ApplicationsCount = x.Applications != null ? x.Applications.Count : 0,
-                    CreatedAt = x.CreatedAt
-                })
-                .FirstOrDefaultAsync(ct);
-            if (vacancy == null)
-                return new Exception("Vacancy not found");
-            return vacancy;
+                    var existing = existingQuestions
+                        .FirstOrDefault(q => q.Id == incoming.Id.Value);
+                    if (existing != null)
+                    {
+                        // Update properties
+                        existing.Text = incoming.Text;
+                        existing.OrderNumber = incoming.OrderNumber;
+                        existing.Answer = MapToDal(incoming.Answer);
+                        continue;
+                    }
+                }
+
+                // Add new question
+                _context.Add(new QuestionDal
+                {
+                    Id = incoming.Id ?? Guid.CreateVersion7(),
+                    Text = incoming.Text,
+                    VacancyId = vacancy.Id,
+                    OrderNumber = incoming.OrderNumber,
+                    Answer = MapToDal(incoming.Answer),
+                });
+            }
+
+            await _context.SaveChangesAsync(ct);
+
+            await trans.CommitAsync(ct);
+            return vacancy.Id;
         }
         catch (Exception ex)
         {
@@ -138,7 +196,14 @@ public class VacanciesRepository
                     ApplicationsCount = x.Applications != null ? x.Applications.Count : 0,
                     CreatedAt = x.CreatedAt,
                     DefaultRejectText = x.DefaultRejectText,
-                    DefaultAcceptedToReviewText = x.FinishedApplicationText
+                    DefaultAcceptedToReviewText = x.FinishedApplicationText,
+                    Questions = x.Questions.Select(q => new VacancyQuestionDto
+                    {
+                        Id = q.Id,
+                        Text = q.Text,
+                        OrderNumber = q.OrderNumber,
+                        Answer = ToDto(q)
+                    }).ToArray()
                 })
                 .FirstOrDefaultAsync(ct);
             if (vacancy == null)
@@ -150,4 +215,18 @@ public class VacanciesRepository
             return ex;
         }
     }
-} 
+
+    private static IQuestionAnswerDto ToDto(QuestionDal q)
+        => q.Answer switch
+        {
+            TextAnswerTypeDal => new TextQuestionAnswerDto(),
+            YesNoAnswerTypeDal => new YesNoQuestionAnswerDto(),
+            YesNoWithRequiredCorrectAnswerTypeDal yesNoWithRequired => 
+                new YesNoWithRequiredCorrectQuestionAnswerDto
+                {
+                    Expected = yesNoWithRequired.Expected,
+                    UnexpectedAnswerRejectText = yesNoWithRequired.UnexpectedAnswerRejectText
+                },
+            _ => new TextQuestionAnswerDto(),
+        };
+}

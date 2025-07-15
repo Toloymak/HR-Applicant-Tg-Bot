@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(HrBotContext))]
-    [Migration("20250703174812_MoreFields")]
-    partial class MoreFields
+    [Migration("20250711140716_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -84,6 +84,11 @@ namespace DataLayer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Answer")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
                     b.Property<bool?>("CriticalText")
                         .HasColumnType("boolean");
 
@@ -144,20 +149,29 @@ namespace DataLayer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Answer")
-                        .HasColumnType("integer");
+                    b.Property<string>("Answer")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<Guid?>("NextQuestionId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("OrderNumber")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasMaxLength(4000)
                         .HasColumnType("character varying(4000)");
 
+                    b.Property<Guid>("VacancyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("VacancyId1")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("NextQuestionId");
+                    b.HasIndex("VacancyId");
+
+                    b.HasIndex("VacancyId1");
 
                     b.ToTable("Questions");
                 });
@@ -216,9 +230,6 @@ namespace DataLayer.Migrations
                     b.Property<bool>("IsArchived")
                         .HasColumnType("boolean");
 
-                    b.Property<Guid?>("RootQuestionId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -228,57 +239,7 @@ namespace DataLayer.Migrations
 
                     b.HasIndex("HrId");
 
-                    b.HasIndex("RootQuestionId");
-
                     b.ToTable("Vacancies");
-                });
-
-            modelBuilder.Entity("Shared.Models.Condition", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Answer")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("CriticalText")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsCritical")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("QuestionId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("QuestionId");
-
-                    b.ToTable("Condition");
-                });
-
-            modelBuilder.Entity("Shared.Models.Question", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Answer")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("NextQuestionId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Question");
                 });
 
             modelBuilder.Entity("DataLayer.Dals.AnswerDal", b =>
@@ -324,17 +285,22 @@ namespace DataLayer.Migrations
 
             modelBuilder.Entity("DataLayer.Dals.QuestionDal", b =>
                 {
-                    b.HasOne("DataLayer.Dals.QuestionDal", "NextQuestion")
-                        .WithMany()
-                        .HasForeignKey("NextQuestionId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                    b.HasOne("DataLayer.Dals.VacancyDal", null)
+                        .WithMany("Questions")
+                        .HasForeignKey("VacancyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("NextQuestion");
+                    b.HasOne("DataLayer.Dals.VacancyDal", "Vacancy")
+                        .WithMany()
+                        .HasForeignKey("VacancyId1");
+
+                    b.Navigation("Vacancy");
                 });
 
             modelBuilder.Entity("DataLayer.Dals.UserApplicationDal", b =>
                 {
-                    b.HasOne("Shared.Models.Question", "LastQuestion")
+                    b.HasOne("DataLayer.Dals.QuestionDal", "LastQuestion")
                         .WithMany()
                         .HasForeignKey("LastQuestionId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -357,23 +323,7 @@ namespace DataLayer.Migrations
                         .HasForeignKey("HrId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("DataLayer.Dals.QuestionDal", "RootQuestion")
-                        .WithMany()
-                        .HasForeignKey("RootQuestionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("Hr");
-
-                    b.Navigation("RootQuestion");
-                });
-
-            modelBuilder.Entity("Shared.Models.Condition", b =>
-                {
-                    b.HasOne("Shared.Models.Question", null)
-                        .WithMany("Conditions")
-                        .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("DataLayer.Dals.QuestionDal", b =>
@@ -389,11 +339,8 @@ namespace DataLayer.Migrations
             modelBuilder.Entity("DataLayer.Dals.VacancyDal", b =>
                 {
                     b.Navigation("Applications");
-                });
 
-            modelBuilder.Entity("Shared.Models.Question", b =>
-                {
-                    b.Navigation("Conditions");
+                    b.Navigation("Questions");
                 });
 #pragma warning restore 612, 618
         }

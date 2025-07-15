@@ -2,6 +2,7 @@
 @using UiShared.Sercvies
 @using Application.Client.Components
 @using Application.Client.Constants.Links
+@using Application.Client.Extensions
 @using Shared.Models.Vacancies
 @using Application.Client.Pages.Vacancy.Components
 @inject ICreateVacancy CreateVacancyService
@@ -52,9 +53,12 @@
             </MudButton>
         </div>
 
-        @foreach (var question in _vacancy.Questions)
+
+        @foreach (var question in _vacancy.Questions.OrderBy(x => x.OrderNumber))
         {
-            <QuestionEditor Question="@question"/>
+            <QuestionEditor Question="@question"
+                            OrderChanged="_vacancy.ReorderQuestions"
+                            Delete="_vacancy.RemoveQuestion"/>
         }
         
         <MudCard>
@@ -97,10 +101,18 @@
             Description = _vacancy.Description,
             DefaultAcceptedToReviewText = _vacancy.DefaultAcceptedToReviewText,
             DefaultRejectText = _vacancy.DefaultRejectText,
-            Questions = _vacancy.Questions.Select(q => new VacancyQuestion
+            Questions = _vacancy.Questions
+                .OrderBy(x => x.OrderNumber)
+                .HandleWithPrevious((prev, current) =>
+                {
+                    current.OrderNumber = prev == null ? 1 : prev.OrderNumber + 1;
+                    return current;
+                })
+                .Select(q => new VacancyQuestionDto
             {
                 Id = q.Id,
                 Text = q.Text,
+                OrderNumber = q.OrderNumber,
                 Answer = q.Answer.MapToDto()
             }).ToList()
         };

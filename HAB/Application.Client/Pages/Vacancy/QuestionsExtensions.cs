@@ -4,14 +4,15 @@ namespace Application.Client.Pages.Vacancy;
 
 public static class QuestionsExtensions
 {
-    internal static IQuestionAnswer MapToDto(this IAnswerProperties answer)
+    internal static IQuestionAnswerDto MapToDto(
+        this IAnswerProperties answer)
     {
         if (answer is YesNoAnswer yesNoAnswer)
         {
             return yesNoAnswer.RequiredAnswer switch
             {
-                null => new YesNoQuestionAnswer(),
-                { } requiredAnswer => new YesNoWithRequiredCorrectQuestionAnswer
+                null => new YesNoQuestionAnswerDto(),
+                { } requiredAnswer => new YesNoWithRequiredCorrectQuestionAnswerDto
                 {
                     Expected = requiredAnswer.ExpectedAnswer,
                     UnexpectedAnswerRejectText = requiredAnswer.UnexpectedAnswerRejectText
@@ -19,6 +20,6 @@ public static class QuestionsExtensions
             };
         }
             
-        return new TextQuestionAnswer();
+        return new TextQuestionAnswerDto();
     }
 }
