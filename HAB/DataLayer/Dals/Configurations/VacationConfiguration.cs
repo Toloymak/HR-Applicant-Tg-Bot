@@ -11,6 +11,7 @@ public class VacationConfiguration : IEntityTypeConfiguration<VacancyDal>
 
         builder.Property(v => v.DefaultRejectText).IsRequired();
         builder.Property(v => v.FinishedApplicationText).IsRequired();
+        builder.Property(v => v.IsActive).IsRequired();
         
         builder.HasOne(x => x.Hr)
             .WithMany()

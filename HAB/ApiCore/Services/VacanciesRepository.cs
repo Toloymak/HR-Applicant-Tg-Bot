@@ -36,7 +36,8 @@ public class VacanciesRepository
                 HrId = x.HrId,
                 HrName = x.Hr != null ? x.Hr.Alias : null,
                 ApplicationsCount = x.Applications!.Count,
-                CreatedAt = x.CreatedAt
+                CreatedAt = x.CreatedAt,
+                IsActive = x.IsActive
             });
 
         var totalCount = await query.CountAsync(ct);
@@ -65,6 +66,7 @@ public class VacanciesRepository
                 Description = request.Description,
                 DefaultRejectText = request.DefaultRejectText,
                 FinishedApplicationText = request.DefaultAcceptedToReviewText,
+                IsActive = request.IsActive,
                 CreatedAt = DateTime.UtcNow,
                 Questions = request.Questions
                     .Select(question => new QuestionDal
@@ -115,6 +117,7 @@ public class VacanciesRepository
             vacancy.Description = request.Description;
             vacancy.DefaultRejectText = request.DefaultRejectText;
             vacancy.FinishedApplicationText = request.DefaultAcceptedToReviewText;
+            vacancy.IsActive = request.IsActive;
 
             // _context.Add(new QuestionDal()
             // {
@@ -181,7 +184,8 @@ public class VacanciesRepository
         }
     }
 
-    public async Task<Either<Exception, VacancyDetailsDto>> GetDetailsById(Guid id, CancellationToken ct)
+    public async Task<Either<Exception, VacancyDetailsDto>> GetDetailsById(
+        Guid id, CancellationToken ct)
     {
         try
         {
@@ -197,6 +201,7 @@ public class VacanciesRepository
                     CreatedAt = x.CreatedAt,
                     DefaultRejectText = x.DefaultRejectText,
                     DefaultAcceptedToReviewText = x.FinishedApplicationText,
+                    IsActive = x.IsActive,
                     Questions = x.Questions.Select(q => new VacancyQuestionDto
                     {
                         Id = q.Id,

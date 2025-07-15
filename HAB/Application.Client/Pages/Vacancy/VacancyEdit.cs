@@ -7,6 +7,7 @@ public record VacancyEdit
     public string Description { get; set; } = string.Empty;
     public string DefaultRejectText { get; set; } = string.Empty;
     public string DefaultAcceptedToReviewText { get; set; } = string.Empty;
+    public bool IsActive { get; set; } = true;
 
     public List<QuestionEdit> Questions { get; set; } = [QuestionEdit.NewQuestion()];
 

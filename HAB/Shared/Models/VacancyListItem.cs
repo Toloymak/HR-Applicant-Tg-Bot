@@ -12,4 +12,5 @@ public class VacancyListItem
     public required int ApplicationsCount { get; set; }
     
     public required DateTime CreatedAt { get; set; }
+    public required bool IsActive { get; set; }
 }

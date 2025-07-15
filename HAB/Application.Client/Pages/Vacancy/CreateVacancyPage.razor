@@ -39,6 +39,8 @@
                               HelperText="Text shown to candidate when HR rejects application"
                               MaxLength="1000"
                               AutoGrow="true"/>
+                
+                <MudCheckBox T="bool" Label="Active" @bind-Value="_vacancy.IsActive" />
             </MudCardContent>
         </MudCard>
         
@@ -101,6 +103,7 @@
             Description = _vacancy.Description,
             DefaultAcceptedToReviewText = _vacancy.DefaultAcceptedToReviewText,
             DefaultRejectText = _vacancy.DefaultRejectText,
+            IsActive = _vacancy.IsActive,
             Questions = _vacancy.Questions
                 .OrderBy(x => x.OrderNumber)
                 .HandleWithPrevious((prev, current) =>

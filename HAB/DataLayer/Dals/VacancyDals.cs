@@ -17,6 +17,8 @@ public class VacancyDal
 
     public bool IsArchived { get; set; }
     
+    public bool IsActive { get; set; } = true;
+    
     [MaxLength(4000)]
     public required string DefaultRejectText { get; set; }
 

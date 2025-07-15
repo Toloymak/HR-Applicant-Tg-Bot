@@ -13,4 +13,5 @@ public record VacancyDetailsDto
     public required string DefaultRejectText { get; init; }
     public required string DefaultAcceptedToReviewText { get; init; }
     public required IReadOnlyCollection<VacancyQuestionDto> Questions { get; init; }
+    public required bool IsActive { get; init; }
 } 

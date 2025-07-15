@@ -31,6 +31,7 @@
         <PropertyColumn Property="x => x.HrName" Title="HR" />
         <PropertyColumn Property="x => x.ApplicationsCount" Title="Applications" />
         <PropertyColumn Property="x => x.CreatedAt.ToShortDateString()" Title="Created" />
+        <PropertyColumn Property="x => x.IsActive" Title="Active" />
         <TemplateColumn>
             <CellTemplate>
                 @if (context.Item != null)

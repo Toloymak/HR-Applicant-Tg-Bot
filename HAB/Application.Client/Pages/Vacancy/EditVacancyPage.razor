@@ -20,6 +20,7 @@
             <MudTextField Label="Description" @bind-Value="_vacancy.Description" MaxLength="1000" AutoGrow="true"/>
             <MudTextField Label="Default accepted to review text" @bind-Value="_vacancy.DefaultAcceptedToReviewText" HelperText="Text shown to candidate when application is finished" MaxLength="1000" AutoGrow="true"/>
             <MudTextField Label="Default rejected text" @bind-Value="_vacancy.DefaultRejectText" HelperText="Text shown to candidate when HR rejects application" MaxLength="1000" AutoGrow="true"/>
+            <MudCheckBox T="bool" Label="Active" @bind-Value="_vacancy.IsActive" />
         </MudCardContent>
     </MudCard>
 
@@ -28,7 +29,7 @@
         <MudSpacer/>
         @* <div> *@
             <MudButton Color="Color.Primary"
-                       OnClick="_vacancy.AddNewQuestion"
+                       OnClick="@_vacancy.AddNewQuestion"
                        Variant="Variant.Filled"
                        Size="Size.Small">
                 Add question
@@ -48,7 +49,7 @@
         <MudSpacer/>
         @* <div> *@
         <MudButton Color="Color.Primary"
-                   OnClick="_vacancy.AddNewQuestion"
+                   OnClick="@_vacancy.AddNewQuestion"
                    Variant="Variant.Filled"
                    Size="Size.Small">
             Add question
@@ -59,13 +60,13 @@
 
     <MudCard>
         <MudCardActions Style="justify-content: end; gap: 30px;">
-            <MudButton OnClick="OnBack" Color="Color.Secondary" Variant="Variant.Text">
+            <MudButton OnClick="@OnBack" Color="Color.Secondary" Variant="Variant.Text">
                 Back
             </MudButton>
-            <MudButton OnClick="OnReset" Color="Color.Warning" Variant="Variant.Filled">
+            <MudButton OnClick="@OnReset" Color="Color.Warning" Variant="Variant.Filled">
                 Reset
             </MudButton>
-            <MudButton OnClick="OnEdit" Color="Color.Primary" Variant="Variant.Filled">
+            <MudButton OnClick="@OnEdit" Color="Color.Primary" Variant="Variant.Filled">
                 Save
             </MudButton>
         </MudCardActions>
@@ -101,6 +102,7 @@
             Description = vacancy.Description,
             DefaultAcceptedToReviewText = vacancy.DefaultAcceptedToReviewText,
             DefaultRejectText = vacancy.DefaultRejectText,
+            IsActive = vacancy.IsActive,
             Questions = vacancy.Questions.Select(q =>
                 new QuestionEdit
                 (
@@ -149,6 +151,7 @@
             Description = _vacancy.Description,
             DefaultAcceptedToReviewText = _vacancy.DefaultAcceptedToReviewText,
             DefaultRejectText = _vacancy.DefaultRejectText,
+            IsActive = _vacancy.IsActive,
             Questions = _vacancy.Questions.Select(q => new VacancyQuestionDto()
             {
                 Id = q.Id,
@@ -179,6 +182,7 @@
                 Description = _original.Description,
                 DefaultAcceptedToReviewText = _original.DefaultAcceptedToReviewText,
                 DefaultRejectText = _original.DefaultRejectText,
+                IsActive = _original.IsActive,
                 Questions = _original.Questions.Select(q => q with
                 {
                     Answer = q.Answer.Copy()
