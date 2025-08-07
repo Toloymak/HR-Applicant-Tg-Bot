@@ -1,3 +1,6 @@
+using System.Reflection;
+using CandidateTgBot.Handlers.Commands;
+using CandidateTgBot.Helpers;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -7,10 +10,17 @@ namespace CandidateTgBot.Handlers;
 public class CandidateBotMessageHandler
 {
     private readonly ILogger<CandidateBotMessageHandler> _logger;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly BotCommandHandler _botCommandHandler;
 
-    public CandidateBotMessageHandler(ILogger<CandidateBotMessageHandler> logger)
+    public CandidateBotMessageHandler(
+        ILogger<CandidateBotMessageHandler> logger,
+        IServiceProvider serviceProvider,
+        BotCommandHandler botCommandHandler)
     {
         _logger = logger;
+        _serviceProvider = serviceProvider;
+        _botCommandHandler = botCommandHandler;
     }
 
     public async Task HandleUpdateAsync(
@@ -33,19 +43,22 @@ public class CandidateBotMessageHandler
             callback?.Data
         );
         
-        
         if (chatId == null) 
             return;
 
-        // Send 'pong' in response to any message
-        if (message != null)
-        {
-            await bot.SendMessage(
-                chatId: chatId,
-                text: $"pong ({message.Text})",
-                cancellationToken: token
-            );
-        }
+        if (message == null)
+            return;
+
+        if (message.Text != null
+            && await _botCommandHandler
+                .TryExecuteCommand(message.Text, chatId.Value, token))
+            return;
+
+        await bot.SendMessage(
+            chatId: chatId,
+            text: $"pong ({message.Text})",
+            cancellationToken: token
+        );
 
         if (callback != null)
         {
@@ -62,6 +75,7 @@ public class CandidateBotMessageHandler
                 cancellationToken: token
             );
         }
-        
     }
+
+    
 }

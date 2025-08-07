@@ -1,7 +1,9 @@
 using CandidateTgBot.Handlers;
+using CandidateTgBot.Handlers.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
+using Telegram.Bot.Types;
 
 namespace CandidateTgBot.Services;
 
@@ -23,6 +25,9 @@ public class CandidateBotService
 
     public async Task Start(CancellationToken ct)
     {
+        await _botClient.SetMyCommands(
+            MenuBotConfig.GetMenuCommands(),
+            cancellationToken: ct);
         var me = await _botClient.GetMe(cancellationToken: ct);
 
         _logger.LogInformation(
