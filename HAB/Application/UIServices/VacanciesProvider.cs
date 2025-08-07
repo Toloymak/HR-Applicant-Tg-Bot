@@ -1,7 +1,7 @@
+using ApiCore.Services;
 using LanguageExt;
 using Shared.Models;
 using UiShared.Sercvies;
-using Domain.Services;
 using Shared.Models.Vacancies;
 
 namespace Application.UIServices;

@@ -1,12 +1,12 @@
 using System.Data;
 using DataLayer.Contexts;
 using DataLayer.Dals;
+using LanguageExt;
 using Microsoft.EntityFrameworkCore;
 using Shared.Models;
-using LanguageExt;
 using Shared.Models.Vacancies;
 
-namespace Domain.Services;
+namespace ApiCore.Services;
 
 public class VacanciesRepository
 {

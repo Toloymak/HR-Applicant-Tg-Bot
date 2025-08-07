@@ -1,6 +1,9 @@
 using System.Text;
 using System.Text.Json.Serialization.Metadata;
+using ApiCore.Options;
+using ApiCore.Services;
 using Application.Client.Services;
+using Application.Client.Services.Bot;
 using Application.Client.Services.HrUsers;
 using Application.Components;
 using Application.Configurations;
@@ -11,8 +14,6 @@ using Application.UIServices;
 using CandidateTgBot.Handlers;
 using CandidateTgBot.Services;
 using DataLayer.Contexts;
-using Domain.Options;
-using Domain.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
@@ -40,17 +41,7 @@ builder.Services.AddDbContext<HrBotContext>(options =>
 #endif
     );
 
-builder.Services
-    .AddOptions<CandidateBotOptions>()
-    .Bind(builder.Configuration.GetSection("CandidateBot"))
-    .ValidateOnStart();
-builder.Services
-    .AddOptions<JwtOptions>()
-    .Bind(builder.Configuration.GetSection("Jwt"))
-    .ValidateOnStart();
-
-// builder.Services.AddHttpClient("https://concrete-mammoth-noticeably.ngrok-free.app/");
-
+builder.Services.RegisterOptions();
 
 builder.Services
     .AddSingleton<ITelegramBotClient>(sp =>
@@ -79,6 +70,8 @@ builder.Services.AddTransient<IEditVacancy, VacanciesProvider>();
 
 builder.Services.AddTransient<CandidateBotMessageHandler>();
 builder.Services.AddTransient<CandidateBotErrorHandler>();
+
+builder.Services.AddScoped<IProvidePublicBotInfo, ProvidePublicBotInfo>();
 
 builder.Services.Configure<JsonOptions>(options =>
 {

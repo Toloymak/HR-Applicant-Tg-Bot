@@ -1,0 +1,99 @@
+@attribute [Route(BotInfoLinks.Info)]
+
+@using Application.Client.Constants.Links
+@using Application.Client.Services.Bot
+@using Shared.Models
+@inject IProvidePublicBotInfo BotInfoProvider
+@inject IJSRuntime JsRuntime
+@inject ISnackbar Snackbar
+
+<PageTitle>Bot Addresses</PageTitle>
+
+<MudCard>
+    <MudCardHeader>
+        <MudText Typo="Typo.h3">Telegram bot</MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        @if (_isLoading)
+        {
+            <div class="text-center">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading bot addresses...</p>
+            </div>
+        }
+        else if (_errorMessage != null)
+        {
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Error loading bot addresses: @_errorMessage
+            </div>
+        }
+        else if (_botAddresses != null)
+        {
+            <div style="display: flex; gap: 30px; align-items: center; font-size: 16px">
+                <div>
+                    Candidate Application Bot <span style="font-weight: 500">@_botAddresses.CandidateApplicationBot</span>
+                </div>
+                <div>
+                <p class="mb-1 text-muted">
+                        <MudLink Href="@_botAddresses.CandidateApplicationBot.ToTgLink()"
+                                 Target="_blank">
+                            Open in Telegram
+                        </MudLink>
+                    </p>
+                </div>
+                <div>
+                    <MudLink
+                        OnClick="@(() => CopyToClipboard(_botAddresses.CandidateApplicationBot))">
+                        Copy to Clipboard
+                    </MudLink>
+                </div>
+            </div>
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private BotPublicInfo? _botAddresses;
+    private bool _isLoading = true;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var info = await BotInfoProvider
+                .GetPublicBotInfo(CancellationToken.None);
+
+            info.Match(
+                botInfo => _botAddresses = botInfo,
+                error => _errorMessage = error.Message
+            );
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task CopyToClipboard(TgUserName tgUser)
+    {
+        var tgName = tgUser.TgLinkWithAt();
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", tgName);
+            Snackbar.Add("Username copied to clipboard!", Severity.Success);
+        }
+        catch (Exception)
+        {
+            await JsRuntime.InvokeVoidAsync("prompt", "Copy this text:", tgName);
+        }
+    }
+
+}

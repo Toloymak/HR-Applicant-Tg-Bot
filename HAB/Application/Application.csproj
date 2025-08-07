@@ -24,8 +24,4 @@
       <_ContentIncludedByDefault Remove="Application.Client\obj\project.assets.json" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Options\" />
-    </ItemGroup>
-
 </Project>

@@ -1,10 +1,10 @@
 using System.Security.Cryptography;
 using System.Text;
-using Domain.Options;
+using ApiCore.Options;
 using Microsoft.Extensions.Options;
 using Shared.Models.Requests;
 
-namespace Domain.Services;
+namespace ApiCore.Services;
 
 public class TelegramAuthValidator
 {

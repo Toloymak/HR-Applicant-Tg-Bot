@@ -23,10 +23,13 @@ public class CandidateBotMessageHandler
         var chatId = message?.Chat.Id ?? callback?.Message?.Chat.Id;
         
         _logger.LogInformation(
-            "Received update: {UpdateType} from chat ID: {ChatId}. Message: {MessageText}, Callback: {CallbackData}",
+            "Received update: {UpdateType} " +
+            "from chat ID: {ChatId}, " +
+            "Message: {MessageText}, " +
+            "Callback: {CallbackData}",
             update.Type,
             chatId,
-            message,
+            message?.ToString(),
             callback?.Data
         );
         

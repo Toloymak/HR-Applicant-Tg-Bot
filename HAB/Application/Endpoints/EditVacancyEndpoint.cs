@@ -1,6 +1,6 @@
+using ApiCore.Services;
 using Application.Extensions;
 using Application.Policies;
-using Domain.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Models.Vacancies;

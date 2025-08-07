@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Shared.Models;
 using Shared.Models.HrUsers;
 
-namespace Domain.Services;
+namespace ApiCore.Services;
 
 public class HrUserRepository
 {

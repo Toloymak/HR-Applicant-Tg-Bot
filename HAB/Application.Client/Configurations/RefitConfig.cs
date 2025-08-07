@@ -15,5 +15,6 @@ public static class RefitConfig
         
         services.AddRefitClient<IVacanciesClient>();
         services.AddRefitClient<IHrUsersClient>();
+        services.AddRefitClient<IBotInfoClient>();
     }
 }

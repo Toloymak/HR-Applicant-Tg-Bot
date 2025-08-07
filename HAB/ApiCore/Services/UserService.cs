@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shared.Models;
 
-namespace Domain.Services;
+namespace ApiCore.Services;
 
 public class UserService
 {
