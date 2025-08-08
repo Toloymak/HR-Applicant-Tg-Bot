@@ -17,6 +17,7 @@ public static class CandidateTgBotCompositionRoot
         service.AddTransient<BotCommandHandler>();
         service.AddTransient<WelcomeMessageService>();
         service.AddTransient<IProvideAvailablePositions, ProvideAvailablePositionsMock>();
+        service.AddTransient<CallbackMessageHandler>();
         service.AddTransient<ButtonCallbackParser>();
     }
 }

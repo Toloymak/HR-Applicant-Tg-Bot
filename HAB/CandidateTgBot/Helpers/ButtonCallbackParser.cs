@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using CandidateTgBot.Types.Callbacks;
 using MessagePack;
 using Microsoft.Extensions.Logging;
+using Telegram.Bot.Types;
 
 namespace CandidateTgBot.Helpers;
 
@@ -23,9 +24,10 @@ public class ButtonCallbackParser
         _logger = logger;
     }
 
-    public ICallback? ParseCallback(string callback)
+    public ICallback? ParseCallback(CallbackQuery callback)
     {
-        if (GetCommand(callback) is not {} tgCommand)
+        if (callback.Data is not {} callbackData
+            || GetCommand(callbackData) is not {} tgCommand)
             return null;
 
         if (CommandParsers.TryGetValue(tgCommand.Command, out var commandParser))
@@ -33,7 +35,7 @@ public class ButtonCallbackParser
         
         _logger.LogWarning(
             "No command parser found for callback: {Callback}",
-            callback);
+            callbackData);
         
         return null;
     }

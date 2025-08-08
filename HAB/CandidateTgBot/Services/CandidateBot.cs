@@ -36,11 +36,11 @@ public class CandidateBot
             me.Username
         );
 
-        _botClient.StartReceiving(async (client, update, token) =>
+        _botClient.StartReceiving(async (_, update, token) =>
             {
                 using var scope = _serviceProvider.CreateScope();
                 var handler = scope.ServiceProvider.GetRequiredService<CandidateBotMessageHandler>();
-                await handler.HandleUpdateAsync(client, update, token);
+                await handler.HandleUpdateAsync(update, token);
             },
             async (client, exception, token) =>
             {
