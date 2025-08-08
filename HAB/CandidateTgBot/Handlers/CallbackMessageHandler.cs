@@ -31,9 +31,11 @@ public class CallbackMessageHandler
         CallbackQuery callback,
         CancellationToken token)
     {
-        if (_buttonCallbackParser.ParseCallback(callback) is { } command
-            && await TryDispatchToHandler(chatId, command, callback.Id, token))
-            return;
+        if (_buttonCallbackParser.ParseCallback(callback) is { } command)
+        {
+            if (await TryDispatchToHandler(chatId, command, callback, token))
+                return;
+        }
 
         await _tgClient.SendMessage(
             chatId: chatId,
@@ -52,7 +54,7 @@ public class CallbackMessageHandler
     private async Task<bool> TryDispatchToHandler(
         long chatId,
         ICallback command,
-        string callbackId,
+        CallbackQuery query,
         CancellationToken token)
     {
         var handlerType = typeof(ICallbackHandler<>)
@@ -60,14 +62,15 @@ public class CallbackMessageHandler
 
         if (_serviceProvider.GetService(handlerType) is not ICallbackHandler handler)
         {
-            _logger.LogError("Handler of type {HandlerType} could not be found", handlerType);
+            _logger.LogError("Handler of type {HandlerType} could not be found",
+                handlerType);
             return false;
         }
         
-        await handler.Handle(chatId, command, token);
+        await handler.Handle(chatId, command, query, token);
         
         await _tgClient.AnswerCallbackQuery(
-            callbackQueryId: callbackId,
+            callbackQueryId: query.Id,
             text: "Processed",
             showAlert: false,
             cancellationToken: token

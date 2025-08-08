@@ -1,4 +1,5 @@
 using CandidateTgBot.Types.Callbacks;
+using Telegram.Bot.Types;
 
 namespace CandidateTgBot.Handlers.CallbackHandlers;
 
@@ -6,14 +7,21 @@ public interface ICallbackHandler<in T>
     : ICallbackHandler
     where T : ICallback
 {
-    Task Handle(long chatId, T command, CancellationToken ct);
+    Task Handle(long chatId, T command, CallbackQuery callbackQuery, CancellationToken ct);
     
     async Task ICallbackHandler.Handle(
-        long chatId, ICallback command, CancellationToken ct)
-        => await Handle(chatId, (T) command, ct);
+        long chatId,
+        ICallback command,
+        CallbackQuery query,
+        CancellationToken ct)
+        => await Handle(chatId, (T) command, query, ct);
 }
 
 public interface ICallbackHandler
 {
-    Task Handle(long chatId, ICallback command, CancellationToken token);
+    Task Handle(
+        long chatId,
+        ICallback command,
+        CallbackQuery query,
+        CancellationToken token);
 }

@@ -1,5 +1,6 @@
 using CandidateTgBot.Types.Callbacks;
 using Telegram.Bot;
+using Telegram.Bot.Types;
 
 namespace CandidateTgBot.Handlers.CallbackHandlers;
 
@@ -12,7 +13,11 @@ public class VacancyInfoCallbackHandler : ICallbackHandler<VacancyInfoCallback>
         _tg = tg;
     }
 
-    public async Task Handle(long chatId, VacancyInfoCallback command, CancellationToken ct)
+    public async Task Handle(
+        long chatId,
+        VacancyInfoCallback command, 
+        CallbackQuery callbackQuery,
+        CancellationToken ct)
     {
         // Mock behavior: just acknowledge and echo the vacancy ID.
         await _tg.SendMessage(
