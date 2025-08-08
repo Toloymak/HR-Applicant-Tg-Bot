@@ -26,5 +26,7 @@ public static class CandidateTgBotCompositionRoot
         // Callback handlers
         service.AddTransient<ICallbackHandler<VacancyInfoCallback>, VacancyInfoCallbackHandler>();
         service.AddTransient<ICallbackHandler<UpdateVacancyListCallback>, UpdateVacancyListCallbackHandler>();
+        service.AddTransient<ICallbackHandler<ShowOtherVacanciesCallback>, ShowOtherVacanciesCallbackHandler>();
+        service.AddTransient<ICallbackHandler<ApplyForVacancyCallback>, ApplyForVacancyCallbackHandler>();
     }
 }

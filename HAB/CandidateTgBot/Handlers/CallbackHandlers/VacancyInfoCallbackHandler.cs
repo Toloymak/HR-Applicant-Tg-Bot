@@ -1,5 +1,7 @@
+using CandateTgBot.Shared.Services;
 using CandidateTgBot.Types.Callbacks;
 using Telegram.Bot;
+using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot.Types;
 
 namespace CandidateTgBot.Handlers.CallbackHandlers;
@@ -7,10 +9,12 @@ namespace CandidateTgBot.Handlers.CallbackHandlers;
 public class VacancyInfoCallbackHandler : ICallbackHandler<VacancyInfoCallback>
 {
     private readonly ITelegramBotClient _tg;
+    private readonly IGetVacancyInfo _getVacancyInfo;
 
-    public VacancyInfoCallbackHandler(ITelegramBotClient tg)
+    public VacancyInfoCallbackHandler(ITelegramBotClient tg, IGetVacancyInfo getVacancyInfo)
     {
         _tg = tg;
+        _getVacancyInfo = getVacancyInfo;
     }
 
     public async Task Handle(
@@ -19,14 +23,31 @@ public class VacancyInfoCallbackHandler : ICallbackHandler<VacancyInfoCallback>
         CallbackQuery callbackQuery,
         CancellationToken ct)
     {
-        // Mock behavior: just acknowledge and echo the vacancy ID.
-        await _tg.SendMessage(
-            chatId: chatId,
-            text: $"You selected vacancy: {command.VacancyId}",
-            cancellationToken: ct
-        );
+        var info = await _getVacancyInfo.Get(command.VacancyId, ct);
+        if (info is null)
+        {
+            await _tg.SendMessage(chatId, "Vacancy was not found.", cancellationToken: ct);
+            return;
+        }
 
-        // Next steps could be: load vacancy details and send a form.
+        var text = $"{info.Title}\n\n{info.Description}";
+        var keyboard = new InlineKeyboardMarkup(new[]
+        {
+            new []
+            {
+                InlineKeyboardButton.WithCallbackData(
+                    text: "Apply",
+                    callbackData: new ApplyForVacancyCallback { VacancyId = command.VacancyId }
+                        .ToTgString().ToString()
+                ),
+                InlineKeyboardButton.WithCallbackData(
+                    text: "Show others",
+                    callbackData: new ShowOtherVacanciesCallback()
+                        .ToTgString().ToString()
+                )
+            }
+        });
+
+        await _tg.SendMessage(chatId, text, replyMarkup: keyboard, cancellationToken: ct);
     }
 }
-

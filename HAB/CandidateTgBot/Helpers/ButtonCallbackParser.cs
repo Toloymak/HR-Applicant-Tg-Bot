@@ -16,7 +16,9 @@ public class ButtonCallbackParser
         CommandParsers = new()
     {
         { VacancyInfoCallback.CommandName, VacancyInfoCallback.Parse },
-        { UpdateVacancyListCallback.CommandName, UpdateVacancyListCallback.Parse }
+        { UpdateVacancyListCallback.CommandName, UpdateVacancyListCallback.Parse },
+        { ApplyForVacancyCallback.CommandName, ApplyForVacancyCallback.Parse },
+        { ShowOtherVacanciesCallback.CommandName, ShowOtherVacanciesCallback.Parse }
     };
 
     public ButtonCallbackParser(ILogger<ButtonCallbackParser> logger)

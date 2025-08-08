@@ -70,6 +70,7 @@ builder.Services.AddTransient<IAuthService, AuthService>();
 builder.Services.AddTransient<ICreateVacancy, VacanciesProvider>();
 builder.Services.AddTransient<IEditVacancy, VacanciesProvider>();
 builder.Services.AddTransient<IProvideAvailablePositions, AvailableVacancyProvider>();
+builder.Services.AddTransient<IGetVacancyInfo, GetVacancyInfoMock>();
 
 CandidateTgBotCompositionRoot.Register(builder.Services);
 
