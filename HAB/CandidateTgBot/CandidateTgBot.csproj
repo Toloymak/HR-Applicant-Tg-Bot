@@ -17,4 +17,8 @@
       <Folder Include="Types\Commands\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\CandateTgBot.Shared\CandateTgBot.Shared.csproj" />
+    </ItemGroup>
+
 </Project>

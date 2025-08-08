@@ -1,3 +1,4 @@
+using CandateTgBot.Shared.Services;
 using CandidateTgBot.Handlers;
 using CandidateTgBot.Handlers.Commands;
 using CandidateTgBot.Helpers;
@@ -19,7 +20,6 @@ public static class CandidateTgBotCompositionRoot
         service.AddTransient<BotCommandHandler>();
         service.AddTransient<WelcomeCommunicationService>();
         service.AddTransient<VacancyListCommunicationService>();
-        service.AddTransient<IProvideAvailablePositions, ProvideAvailablePositionsMock>();
         service.AddTransient<CallbackMessageHandler>();
         service.AddTransient<ButtonCallbackParser>();
 

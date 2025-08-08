@@ -11,6 +11,7 @@ using Application.HostedSevices;
 using Application.Policies;
 using Application.Services;
 using Application.UIServices;
+using CandateTgBot.Shared.Services;
 using CandidateTgBot;
 using CandidateTgBot.Handlers;
 using CandidateTgBot.Services;
@@ -68,6 +69,7 @@ builder.Services.AddTransient<IWhoAmIService, WhoAmI>();
 builder.Services.AddTransient<IAuthService, AuthService>();
 builder.Services.AddTransient<ICreateVacancy, VacanciesProvider>();
 builder.Services.AddTransient<IEditVacancy, VacanciesProvider>();
+builder.Services.AddTransient<IProvideAvailablePositions, AvailableVacancyProvider>();
 
 CandidateTgBotCompositionRoot.Register(builder.Services);
 

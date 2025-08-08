@@ -1,3 +1,4 @@
+using CandateTgBot.Shared.Services;
 using CandidateTgBot.Types.Callbacks;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
