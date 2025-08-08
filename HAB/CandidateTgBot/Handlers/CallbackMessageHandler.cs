@@ -1,4 +1,7 @@
+using CandidateTgBot.Handlers.CallbackHandlers;
 using CandidateTgBot.Helpers;
+using CandidateTgBot.Types.Callbacks;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -8,13 +11,19 @@ public class CallbackMessageHandler
 {
     private readonly ITelegramBotClient _tgClient;
     private readonly ButtonCallbackParser _buttonCallbackParser;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<CallbackMessageHandler> _logger;
 
     public CallbackMessageHandler(
         ITelegramBotClient tgClient,
-        ButtonCallbackParser buttonCallbackParser)
+        ButtonCallbackParser buttonCallbackParser,
+        IServiceProvider serviceProvider,
+        ILogger<CallbackMessageHandler> logger)
     {
         _tgClient = tgClient;
         _buttonCallbackParser = buttonCallbackParser;
+        _serviceProvider = serviceProvider;
+        _logger = logger;
     }
 
     public async Task HandleCallback(
@@ -22,22 +31,9 @@ public class CallbackMessageHandler
         CallbackQuery callback,
         CancellationToken token)
     {
-        if (_buttonCallbackParser.ParseCallback(callback) is { } command)
-        {
-            await _tgClient.SendMessage(
-                chatId: chatId,
-                text: $"Command received: {command.Command}, command: {command}",
-                cancellationToken: token
-            );
-                
-            await _tgClient.AnswerCallbackQuery(
-                callbackQueryId: callback.Id,
-                text: $"Callback received successfully! {callback} -{callback.Data}-",
-                showAlert: false,
-                cancellationToken: token
-            );
+        if (_buttonCallbackParser.ParseCallback(callback) is { } command
+            && await TryDispatchToHandler(chatId, command, callback.Id, token))
             return;
-        }
 
         await _tgClient.SendMessage(
             chatId: chatId,
@@ -47,9 +43,36 @@ public class CallbackMessageHandler
                 
         await _tgClient.AnswerCallbackQuery(
             callbackQueryId: callback.Id,
-            text: $"Sorry, I couldn't parse the command, contact support",
+            text: "Sorry, I couldn't parse the command, contact support",
             showAlert: true,
             cancellationToken: token
         );
+    }
+
+    private async Task<bool> TryDispatchToHandler(
+        long chatId,
+        ICallback command,
+        string callbackId,
+        CancellationToken token)
+    {
+        var handlerType = typeof(ICallbackHandler<>)
+            .MakeGenericType(command.GetType());
+
+        if (_serviceProvider.GetService(handlerType) is not ICallbackHandler handler)
+        {
+            _logger.LogError("Handler of type {HandlerType} could not be found", handlerType);
+            return false;
+        }
+        
+        await handler.Handle(chatId, command, token);
+        
+        await _tgClient.AnswerCallbackQuery(
+            callbackQueryId: callbackId,
+            text: "Processed",
+            showAlert: false,
+            cancellationToken: token
+        );
+        
+        return true;
     }
 }

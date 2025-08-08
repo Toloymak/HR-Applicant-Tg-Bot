@@ -3,6 +3,8 @@ using CandidateTgBot.Handlers.Commands;
 using CandidateTgBot.Helpers;
 using CandidateTgBot.Services;
 using CandidateTgBot.Services.CommunicationServices;
+using CandidateTgBot.Handlers.CallbackHandlers;
+using CandidateTgBot.Types.Callbacks;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CandidateTgBot;
@@ -19,5 +21,9 @@ public static class CandidateTgBotCompositionRoot
         service.AddTransient<IProvideAvailablePositions, ProvideAvailablePositionsMock>();
         service.AddTransient<CallbackMessageHandler>();
         service.AddTransient<ButtonCallbackParser>();
+
+        // Callback handlers
+        service.AddTransient<ICallbackHandler<VacancyInfoCallback>, VacancyInfoCallbackHandler>();
+        service.AddTransient<ICallbackHandler<UpdateVacancyListCallback>, UpdateVacancyListCallbackHandler>();
     }
 }

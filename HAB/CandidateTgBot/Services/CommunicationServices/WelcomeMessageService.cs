@@ -52,7 +52,7 @@ public class WelcomeMessageService
                     text: p.Name,
                     callbackData: new VacancyInfoCallback
                         {
-                            VacancyId = Guid.NewGuid()
+                            VacancyId = p.VacancyId
                         }
                         .ToTgString().ToString()
                 )).Chunk(2)
