@@ -1,17 +1,15 @@
-using System.Text.Json;
-using CandidateTgBot.Helpers;
 using CandidateTgBot.Types.Callbacks;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace CandidateTgBot.Services.CommunicationServices;
 
-public class WelcomeMessageService
+public class VacancyListCommunicationService
 {
     private readonly ITelegramBotClient _botClient;
     private readonly IProvideAvailablePositions _availablePositions;
 
-    public WelcomeMessageService(
+    public VacancyListCommunicationService(
         ITelegramBotClient botClient,
         IProvideAvailablePositions availablePositions)
     {
@@ -19,20 +17,10 @@ public class WelcomeMessageService
         _availablePositions = availablePositions;
     }
 
-    public async Task SendWelcomeMessageAsync(
-        long chatId, 
+    public async Task SendVacancyListAsync(
+        long chatId,
         CancellationToken cancellationToken)
     {
-        var welcomeMessage = 
-            $"Hello, welcome to the Candidate Bot! \n" +
-            "This bot will help you apply for the position. ";
-        
-        await _botClient.SendMessage(
-            chatId: chatId,
-            text: welcomeMessage,
-            cancellationToken: cancellationToken
-        );
-        
         var positions = await _availablePositions
             .GetAvailablePositions(cancellationToken);
 
@@ -55,7 +43,8 @@ public class WelcomeMessageService
                             VacancyId = p.VacancyId
                         }
                         .ToTgString().ToString()
-                )).Chunk(2)
+                ))
+            .Chunk(2)
             .Concat([
                 [
                     InlineKeyboardButton.WithCallbackData(
@@ -66,6 +55,7 @@ public class WelcomeMessageService
                 ]
             ])
             .ToArray();
+
         await _botClient.SendMessage(
             chatId: chatId,
             text: "Please select the position you'd like to apply for:",
@@ -74,3 +64,4 @@ public class WelcomeMessageService
         );
     }
 }
+

@@ -3,20 +3,17 @@ using CandidateTgBot.Types.Callbacks;
 
 namespace CandidateTgBot.Handlers.CallbackHandlers;
 
-public class UpdateVacancyListCallbackHandler
-    : ICallbackHandler<UpdateVacancyListCallback>
+public class UpdateVacancyListCallbackHandler : ICallbackHandler<UpdateVacancyListCallback>
 {
-    private readonly WelcomeMessageService _welcome;
+    private readonly VacancyListCommunicationService _vacancyListService;
 
-    public UpdateVacancyListCallbackHandler(WelcomeMessageService welcome)
+    public UpdateVacancyListCallbackHandler(VacancyListCommunicationService vacancyListService)
     {
-        _welcome = welcome;
+        _vacancyListService = vacancyListService;
     }
 
     public async Task Handle(long chatId, UpdateVacancyListCallback command, CancellationToken ct)
     {
-        // Mock behavior: resends the welcome + positions list as a refresh.
-        await _welcome.SendWelcomeMessageAsync(chatId, ct);
+        await _vacancyListService.SendVacancyListAsync(chatId, ct);
     }
 }
-

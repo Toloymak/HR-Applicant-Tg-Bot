@@ -6,15 +6,15 @@ namespace CandidateTgBot.Handlers.Commands;
 public class CandidateResetCommandHandler : IMenuBotCommand
 {
     private readonly ITelegramBotClient _botClient;
-    private readonly WelcomeMessageService _welcomeMessageService;
+    private readonly WelcomeCommunicationService _welcomeCommunicationService;
     
     public static string Command => "reset";
     public static string Description => "Reset the bot";
     
-    public CandidateResetCommandHandler(ITelegramBotClient botClient, WelcomeMessageService welcomeMessageService)
+    public CandidateResetCommandHandler(ITelegramBotClient botClient, WelcomeCommunicationService welcomeCommunicationService)
     {
         _botClient = botClient;
-        _welcomeMessageService = welcomeMessageService;
+        _welcomeCommunicationService = welcomeCommunicationService;
     }
     
     public async Task HandleCommand(long chatId, CancellationToken ct)
@@ -25,7 +25,7 @@ public class CandidateResetCommandHandler : IMenuBotCommand
             cancellationToken: ct
         );
         
-        await _welcomeMessageService.SendWelcomeMessageAsync(chatId, ct);
+        await _welcomeCommunicationService.SendWelcomeMessageAsync(chatId, ct);
     }
 
 }
