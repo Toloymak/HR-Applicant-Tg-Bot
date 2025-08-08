@@ -7,15 +7,15 @@ using Telegram.Bot.Types;
 
 namespace CandidateTgBot.Services;
 
-public class CandidateBotService
+public class CandidateBot
 {
     private readonly ITelegramBotClient _botClient;
-    private readonly ILogger<CandidateBotService> _logger;
+    private readonly ILogger<CandidateBot> _logger;
     private readonly IServiceProvider _serviceProvider;
 
-    public CandidateBotService(
+    public CandidateBot(
         ITelegramBotClient botClient,
-        ILogger<CandidateBotService> logger,
+        ILogger<CandidateBot> logger,
         IServiceProvider serviceProvider)
     {
         _botClient = botClient;

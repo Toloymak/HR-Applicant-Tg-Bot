@@ -54,7 +54,7 @@ builder.Services.AddSingleton<TelegramAuthValidator>();
 builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddSingleton<IProvideCurrentDateTime, DateTimeProvideCurrent>();
 
-builder.Services.AddSingleton<CandidateBotService>();
+builder.Services.AddSingleton<CandidateBot>();
 builder.Services.AddMudServices();
 
 builder.Services.AddTransient<IVacanciesProvider, VacanciesProvider>();

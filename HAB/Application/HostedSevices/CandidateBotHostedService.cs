@@ -5,20 +5,20 @@ namespace Application.HostedSevices;
 public class CandidateBotHostedService : IHostedService
 {
     private readonly ILogger<CandidateBotHostedService> _logger;
-    private readonly CandidateBotService _botService;
+    private readonly CandidateBot _bot;
 
     public CandidateBotHostedService(
         ILogger<CandidateBotHostedService> logger,
-        CandidateBotService botService)
+        CandidateBot bot)
     {
         _logger = logger;
-        _botService = botService;
+        _bot = bot;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Starting Candidate Bot Hosted Service...");
-        await _botService.Start(cancellationToken);
+        await _bot.Start(cancellationToken);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

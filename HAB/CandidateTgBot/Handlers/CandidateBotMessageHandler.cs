@@ -1,6 +1,7 @@
 using System.Reflection;
 using CandidateTgBot.Handlers.Commands;
 using CandidateTgBot.Helpers;
+using CandidateTgBot.Services;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -10,17 +11,17 @@ namespace CandidateTgBot.Handlers;
 public class CandidateBotMessageHandler
 {
     private readonly ILogger<CandidateBotMessageHandler> _logger;
-    private readonly IServiceProvider _serviceProvider;
     private readonly BotCommandHandler _botCommandHandler;
+    private readonly ButtonCallbackParser _buttonCallbackParser;
 
     public CandidateBotMessageHandler(
         ILogger<CandidateBotMessageHandler> logger,
-        IServiceProvider serviceProvider,
-        BotCommandHandler botCommandHandler)
+        BotCommandHandler botCommandHandler,
+        ButtonCallbackParser buttonCallbackParser)
     {
         _logger = logger;
-        _serviceProvider = serviceProvider;
         _botCommandHandler = botCommandHandler;
+        _buttonCallbackParser = buttonCallbackParser;
     }
 
     public async Task HandleUpdateAsync(
@@ -46,36 +47,54 @@ public class CandidateBotMessageHandler
         if (chatId == null) 
             return;
 
-        if (message == null)
-            return;
-
-        if (message.Text != null
-            && await _botCommandHandler
-                .TryExecuteCommand(message.Text, chatId.Value, token))
-            return;
-
-        await bot.SendMessage(
-            chatId: chatId,
-            text: $"pong ({message.Text})",
-            cancellationToken: token
-        );
-
-        if (callback != null)
+        if (message != null)
         {
+            if (message.Text != null
+                && await _botCommandHandler
+                    .TryExecuteCommand(message.Text, chatId.Value, token))
+                return;
+
             await bot.SendMessage(
                 chatId: chatId,
-                text: $"pong ({callback.Data})",
-                cancellationToken: token
-            );
-            
-            await bot.AnswerCallbackQuery(
-                callbackQueryId: callback.Id,
-                text: $"Callback received successfully! {callback} -{callback.Data}-",
-                showAlert: false,
+                text: $"pong ({message.Text})",
                 cancellationToken: token
             );
         }
-    }
 
-    
+        if (callback is { Data: {} callbackData } )
+        {
+            if (_buttonCallbackParser.ParseCallback(callbackData) is { } command)
+            {
+                await bot.SendMessage(
+                    chatId: chatId,
+                    text: $"Command received: {command.Command}, command: {command}",
+                    cancellationToken: token
+                );
+                
+                await bot.AnswerCallbackQuery(
+                    callbackQueryId: callback.Id,
+                    text: $"Callback received successfully! {callback} -{callback.Data}-",
+                    showAlert: false,
+                    cancellationToken: token
+                );
+            }
+            else
+            {
+                await bot.SendMessage(
+                    chatId: chatId,
+                    text: $"Error handling command ({callback.Data})",
+                    cancellationToken: token
+                );
+                
+                await bot.AnswerCallbackQuery(
+                    callbackQueryId: callback.Id,
+                    text: $"Error handling command ({callback.Data})",
+                    showAlert: false,
+                    cancellationToken: token
+                );
+            }
+            
+            
+        }
+    }
 }
