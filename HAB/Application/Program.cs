@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json.Serialization.Metadata;
 using ApiCore.Options;
 using ApiCore.Services;
+using Application;
 using Application.Client.Services;
 using Application.Client.Services.Bot;
 using Application.Client.Services.HrUsers;
@@ -32,9 +33,6 @@ builder.Services.AddRazorComponents()
     // .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
-builder.Services.AddHostedService<CandidateBotHostedService>();
-builder.Services.AddHostedService<HrBotHostedService>();
-
 builder.Services.AddDbContext<HrBotContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
 #if DEBUG
@@ -44,34 +42,9 @@ builder.Services.AddDbContext<HrBotContext>(options =>
     );
 
 builder.Services.RegisterOptions();
-
-builder.Services
-    .AddSingleton<ITelegramBotClient>(sp =>
-    {
-        var options = sp.GetRequiredService<IOptions<CandidateBotOptions>>().Value;
-        return new TelegramBotClient(options.Token);
-    });
-builder.Services.AddSingleton<TelegramAuthValidator>();
-builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
-builder.Services.AddSingleton<IProvideCurrentDateTime, DateTimeProvideCurrent>();
-
-builder.Services.AddSingleton<CandidateBot>();
 builder.Services.AddMudServices();
 
-builder.Services.AddTransient<IVacanciesProvider, VacanciesProvider>();
-builder.Services.AddTransient<IHrUserProvider, HrUserProvider>();
-builder.Services.AddTransient<IHrUserService, HrUserService>();
-builder.Services.AddTransient<ILogoutService, LogoutService>();
-builder.Services.AddTransient<HrUserRepository>();
-builder.Services.AddTransient<VacanciesRepository>();
-
-builder.Services.AddTransient<IWhoAmIService, WhoAmI>();
-builder.Services.AddTransient<IAuthService, AuthService>();
-builder.Services.AddTransient<ICreateVacancy, VacanciesProvider>();
-builder.Services.AddTransient<IEditVacancy, VacanciesProvider>();
-builder.Services.AddTransient<IProvideAvailablePositions, AvailableVacancyProvider>();
-builder.Services.AddTransient<IGetVacancyInfo, GetVacancyInfoMock>();
-
+ApplicationCompositionRoot.RegisterServices(builder.Services);
 CandidateTgBotCompositionRoot.Register(builder.Services);
 
 builder.Services.AddScoped<IProvidePublicBotInfo, ProvidePublicBotInfo>();
@@ -82,45 +55,7 @@ builder.Services.Configure<JsonOptions>(options =>
         .Insert(0, new DefaultJsonTypeInfoResolver());
 });
 
-var jwt = builder.Configuration.GetSection("Jwt").GetSection("SigningKey").Value
-    ?? throw new InvalidOperationException("JWT Signing Key is not configured.");
-
-builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwt))
-        };
-
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                var token = context.Request.Cookies["auth"];
-                if (!string.IsNullOrEmpty(token))
-                    context.Token = token;
-                return Task.CompletedTask;
-            }
-        };
-    });
-
-builder.Services.AddAuthorization(options =>
-{
-    options
-        .AddPolicy(Policy.Manage.Name, policy =>
-            policy.RequireRole(Policy.Manage.Roles));
-});
+builder.Services.RegisterAuth(builder.Configuration);
 
 var app = builder.Build();
 
