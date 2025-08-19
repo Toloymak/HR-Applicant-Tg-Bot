@@ -26,7 +26,9 @@ public class ButtonCallbackParser
         { KeepProgressCallback.CommandName, KeepProgressCallback.Parse },
         { AnswerYesCallback.CommandName, AnswerYesCallback.Parse },
         { AnswerNoCallback.CommandName, AnswerNoCallback.Parse },
-        { AnswerTextCallback.CommandName, AnswerTextCallback.Parse }
+        { AnswerTextCallback.CommandName, AnswerTextCallback.Parse },
+        { SendOneMoreApplicationCallback.CommandName, SendOneMoreApplicationCallback.Parse },
+        { ShowStatusCallback.CommandName, ShowStatusCallback.Parse }
     };
 
     public ButtonCallbackParser(ILogger<ButtonCallbackParser> logger)

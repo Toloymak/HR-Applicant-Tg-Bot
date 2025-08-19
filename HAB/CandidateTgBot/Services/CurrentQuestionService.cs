@@ -6,6 +6,7 @@ using Shared.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
 using CandidateTgBot.Types;
+using CandidateTgBot.Types.Callbacks;
 
 namespace CandidateTgBot.Services;
 
@@ -205,13 +206,29 @@ public class CurrentQuestionService
         Guid botUserId,
         CancellationToken cancellationToken)
     {
+        var keyboard = new InlineKeyboardMarkup(new[]
+        {
+            new[]
+            {
+                InlineKeyboardButton.WithCallbackData(
+                    text: "📝 Send One More Application",
+                    callbackData: new SendOneMoreApplicationCallback
+                    {
+                        CompletedApplicationId = application.Id
+                    }.ToTgString().ToString()
+                )
+            }
+        });
+
         await _tgClient.SendMessage(
             chatId: chatId,
             text: $"🎉 **Application Complete!**\n\n" +
                   $"You have successfully completed your application for **{application.Vacancy!.Title}**.\n\n" +
                   $"✅ Your application has been submitted and will be reviewed by our HR team.\n\n" +
-                  $"💡 *You will be notified about the status of your application.*",
+                  $"💡 *Use /status to check your application status anytime.*\n\n" +
+                  $"*You will be notified about the status of your application.*",
             parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+            replyMarkup: keyboard,
             cancellationToken: cancellationToken
         );
 

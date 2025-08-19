@@ -77,6 +77,7 @@ public enum ApplicationStatus
     RejectedByHr,
     ApprovedByHr,
     CanceledByUser,
+    CompeatedByUserAndStartedNew,
 }
 
 public record Answer

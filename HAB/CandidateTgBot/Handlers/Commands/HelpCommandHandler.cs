@@ -17,6 +17,8 @@ public class HelpCommandHandler : IMenuBotCommand
             "🏢 *Welcome to the HR Candidate Bot!*\n\n" +
             "This bot helps you apply for job positions. Here are the available commands:\n\n" +
             "• /start - Start using the bot and begin your application\n" +
+            "• /continue - Continue your current application\n" +
+            "• /status - Show your application status and answers\n" +
             "• /help - Show this help message\n" +
             "• /reset - Reset your session and start over\n\n" +
             "💡 *How to use:*\n" +

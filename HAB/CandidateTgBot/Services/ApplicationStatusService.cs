@@ -49,11 +49,12 @@ public class ApplicationStatusService
                 return;
             }
 
-            // Check for completed applications
+            // Check for completed applications (both CompletedByUser and CompeatedByUserAndStartedNew)
             var completedApplications = await _context.UserApplications
                 .Include(a => a.Vacancy)
                 .Where(a => a.BotUserId == botUserId && 
-                           a.State == ApplicationStatus.CompletedByUser)
+                           (a.State == ApplicationStatus.CompletedByUser || 
+                            a.State == ApplicationStatus.CompeatedByUserAndStartedNew))
                 .OrderByDescending(a => a.LastActivity)
                 .ToListAsync(cancellationToken);
 
@@ -144,9 +145,16 @@ public class ApplicationStatusService
         foreach (var application in applications)
         {
             var completionDate = application.LastActivity.ToString("MMM dd, yyyy");
+            var statusDisplay = application.State switch
+            {
+                ApplicationStatus.CompletedByUser => "✅ Submitted for Review",
+                ApplicationStatus.CompeatedByUserAndStartedNew => "✅ Completed",
+                _ => "Unknown Status"
+            };
+            
             statusText += $"**📄 {application.Vacancy?.Title}**\n" +
                          $"Completed: {completionDate}\n" +
-                         $"Status: ✅ Submitted for Review\n\n";
+                         $"Status: {statusDisplay}\n\n";
         }
 
         statusText += "💡 *Your applications have been submitted and are being reviewed by our HR team.*\n\n" +

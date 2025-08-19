@@ -1,6 +1,9 @@
 using CandateTgBot.Shared.Services;
 using CandidateTgBot.Services;
 using CandidateTgBot.Types.Callbacks;
+using DataLayer.Contexts;
+using Microsoft.EntityFrameworkCore;
+using Shared.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -11,15 +14,18 @@ public class VacancyListCommunicationService
     private readonly ITelegramBotClient _botClient;
     private readonly IProvideAvailablePositions _availablePositions;
     private readonly CancelApplicationButtonService _cancelButtonService;
+    private readonly HrBotContext _context;
 
     public VacancyListCommunicationService(
         ITelegramBotClient botClient,
         IProvideAvailablePositions availablePositions,
-        CancelApplicationButtonService cancelButtonService)
+        CancelApplicationButtonService cancelButtonService,
+        HrBotContext context)
     {
         _botClient = botClient;
         _availablePositions = availablePositions;
         _cancelButtonService = cancelButtonService;
+        _context = context;
     }
 
     public async Task SendVacancyListAsync(
@@ -63,21 +69,44 @@ public class VacancyListCommunicationService
                         .ToTgString().ToString()
                 ))
             .Chunk(2)
-            .Concat([
-                [
-                    InlineKeyboardButton.WithCallbackData(
-                        text: "Update list",
-                        callbackData: new UpdateVacancyListCallback()
-                            .ToTgString().ToString()
-                    )
-                ]
-            ])
-            .ToArray();
+            .ToList();
+
+        // Check if user has relevant applications to show status button
+        var hasRelevantApplications = false;
+        if (botUserId.HasValue)
+        {
+            hasRelevantApplications = await _context.UserApplications
+                .AnyAsync(a => a.BotUserId == botUserId.Value && 
+                              (a.State == ApplicationStatus.CompletedByUser ||
+                               a.State == ApplicationStatus.ApprovedByHr ||
+                               a.State == ApplicationStatus.RejectedByHr ||
+                               a.State == ApplicationStatus.CompeatedByUserAndStartedNew), 
+                              cancellationToken);
+        }
+
+        // Add action buttons row
+        var actionButtons = new List<InlineKeyboardButton>();
+        actionButtons.Add(InlineKeyboardButton.WithCallbackData(
+            text: "Update list",
+            callbackData: new UpdateVacancyListCallback()
+                .ToTgString().ToString()
+        ));
+
+        if (hasRelevantApplications)
+        {
+            actionButtons.Add(InlineKeyboardButton.WithCallbackData(
+                text: "📋 Status",
+                callbackData: new ShowStatusCallback()
+                    .ToTgString().ToString()
+            ));
+        }
+
+        keyboard.Add(actionButtons.ToArray());
 
         // Add cancel button if user has active applications
         var finalKeyboard = botUserId.HasValue
-            ? await _cancelButtonService.AddCancelButtonIfNeededAsync(botUserId.Value, keyboard, cancellationToken)
-            : keyboard;
+            ? await _cancelButtonService.AddCancelButtonIfNeededAsync(botUserId.Value, keyboard.ToArray(), cancellationToken)
+            : new InlineKeyboardMarkup(keyboard.ToArray());
 
         await _botClient.SendMessage(
             chatId: chatId,
