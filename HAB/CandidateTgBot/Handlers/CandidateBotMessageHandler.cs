@@ -89,7 +89,7 @@ public class CandidateBotMessageHandler
 
         await _tgClient.SendMessage(
             chatId: chatId,
-            text: $"pong ({message.Text})",
+            text: "🤖 I didn't understand that command. Please use /start to begin, /help to see available commands, or /reset to start over.",
             cancellationToken: token
         );
     }
