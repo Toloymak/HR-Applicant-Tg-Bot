@@ -64,6 +64,21 @@ public class ApplicationStatusService
                 return;
             }
 
+            // Check for completed applications to show short status
+            var shortStatusApplications = await _context.UserApplications
+                .Include(a => a.Vacancy)
+                .Where(a => a.BotUserId == botUserId && 
+                           (a.State == ApplicationStatus.CompletedByUser || 
+                            a.State == ApplicationStatus.CompeatedByUserAndStartedNew))
+                .OrderByDescending(a => a.LastActivity)
+                .ToListAsync(cancellationToken);
+
+            if (shortStatusApplications.Any())
+            {
+                await ShowShortCompletedStatusAsync(chatId, shortStatusApplications, cancellationToken);
+                return;
+            }
+
             // No applications found
             await ShowNoApplicationsMessageAsync(chatId, cancellationToken);
         }
@@ -148,7 +163,7 @@ public class ApplicationStatusService
             var statusDisplay = application.State switch
             {
                 ApplicationStatus.CompletedByUser => "✅ Submitted for Review",
-                ApplicationStatus.CompeatedByUserAndStartedNew => "✅ Completed",
+                ApplicationStatus.CompeatedByUserAndStartedNew => "✅ Review by HR",
                 _ => "Unknown Status"
             };
             
@@ -160,16 +175,91 @@ public class ApplicationStatusService
         statusText += "💡 *Your applications have been submitted and are being reviewed by our HR team.*\n\n" +
                      "*You will be notified about the status of your applications.*";
 
+        // Add "Start new" button if all applications are in review
+        var allInReview = applications.All(a => 
+            a.State == ApplicationStatus.CompletedByUser || 
+            a.State == ApplicationStatus.CompeatedByUserAndStartedNew);
+
+        Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup? keyboard = null;
+        if (allInReview)
+        {
+            keyboard = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(new[]
+            {
+                new[]
+                {
+                    Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData(
+                        text: "🚀 Start New Application",
+                        callbackData: new CandidateTgBot.Types.Callbacks.StartNewApplicationCallback()
+                            .ToTgString().ToString()
+                    )
+                }
+            });
+        }
+
         await _tgClient.SendMessage(
             chatId: chatId,
             text: statusText,
             parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+            replyMarkup: keyboard,
             cancellationToken: cancellationToken
         );
 
         _logger.LogInformation(
             "Showed completed applications status for user, {Count} applications",
             applications.Count);
+    }
+
+    /// <summary>
+    /// Shows short status of completed applications with start new button
+    /// </summary>
+    private async Task ShowShortCompletedStatusAsync(
+        long chatId,
+        List<UserApplicationDal> applications,
+        CancellationToken cancellationToken)
+    {
+        var statusText = $"📋 **No Active Applications**\n\n" +
+                        $"You have {applications.Count} completed application(s):\n\n";
+
+        foreach (var application in applications.Take(3)) // Show only first 3
+        {
+            var completionDate = application.LastActivity.ToString("MMM dd, yyyy");
+            var statusDisplay = application.State switch
+            {
+                ApplicationStatus.CompletedByUser => "✅ Submitted for Review",
+                ApplicationStatus.CompeatedByUserAndStartedNew => "✅ Review by HR",
+                _ => "Unknown Status"
+            };
+            
+            statusText += $"**📄 {application.Vacancy?.Title}**\n" +
+                         $"Completed: {completionDate} | Status: {statusDisplay}\n\n";
+        }
+
+        if (applications.Count > 3)
+        {
+            statusText += $"*... and {applications.Count - 3} more application(s)*\n\n";
+        }
+
+        statusText += "💡 *Ready to start a new application?*";
+
+        var keyboard = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(new[]
+        {
+            new[]
+            {
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData(
+                    text: "🚀 Start New Application",
+                    callbackData: new CandidateTgBot.Types.Callbacks.StartNewApplicationCallback()
+                        .ToTgString().ToString()
+                )
+            }
+        });
+
+        await _tgClient.SendMessage(
+            chatId: chatId,
+            text: statusText,
+            parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+            replyMarkup: keyboard,
+            cancellationToken: cancellationToken
+        );
     }
 
     /// <summary>

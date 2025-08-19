@@ -45,5 +45,6 @@ public static class CandidateTgBotCompositionRoot
         service.AddTransient<ICallbackHandler<AnswerTextCallback>, AnswerTextCallbackHandler>();
         service.AddTransient<ICallbackHandler<SendOneMoreApplicationCallback>, SendOneMoreApplicationCallbackHandler>();
         service.AddTransient<ICallbackHandler<ShowStatusCallback>, ShowStatusCallbackHandler>();
+        service.AddTransient<ICallbackHandler<StartNewApplicationCallback>, StartNewApplicationCallbackHandler>();
     }
 }

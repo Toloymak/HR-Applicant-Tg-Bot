@@ -28,7 +28,8 @@ public class ButtonCallbackParser
         { AnswerNoCallback.CommandName, AnswerNoCallback.Parse },
         { AnswerTextCallback.CommandName, AnswerTextCallback.Parse },
         { SendOneMoreApplicationCallback.CommandName, SendOneMoreApplicationCallback.Parse },
-        { ShowStatusCallback.CommandName, ShowStatusCallback.Parse }
+        { ShowStatusCallback.CommandName, ShowStatusCallback.Parse },
+        { StartNewApplicationCallback.CommandName, StartNewApplicationCallback.Parse }
     };
 
     public ButtonCallbackParser(ILogger<ButtonCallbackParser> logger)
