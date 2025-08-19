@@ -18,7 +18,7 @@ public record Vacancy
 public record BotUser
 {
     public required Guid Id { get; set; }
-    public required string TelegramId { get; set; }
+    public required long TelegramId { get; set; }
     public required string Name { get; set; }
 }
 
@@ -27,7 +27,7 @@ public record NewBotUser
     public required Guid Id { get; set; }
     
     public required string TgName { get; set; }
-    public required string TgId { get; set; }
+    public long? TgId { get; set; }
 }
 
 public record Question

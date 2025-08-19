@@ -19,6 +19,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\CandateTgBot.Shared\CandateTgBot.Shared.csproj" />
+      <ProjectReference Include="..\DataLayer\DataLayer.csproj" />
     </ItemGroup>
 
 </Project>

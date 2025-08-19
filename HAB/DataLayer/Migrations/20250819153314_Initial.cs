@@ -17,8 +17,10 @@ namespace DataLayer.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    TgId = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    TgName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false)
+                    TgId = table.Column<long>(type: "bigint", nullable: true),
+                    TgName = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: true),
+                    LastActivity = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -55,6 +57,7 @@ namespace DataLayer.Migrations
                     Title = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     Description = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: false),
                     IsArchived = table.Column<bool>(type: "boolean", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     DefaultRejectText = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: false),
                     FinishedApplicationText = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -172,8 +175,8 @@ namespace DataLayer.Migrations
 
             migrationBuilder.InsertData(
                 table: "BotUsers",
-                columns: new[] { "Id", "TgId", "TgName" },
-                values: new object[] { new Guid("d2f8b0c4-3c1e-4b5a-9f6e-7c8d9e0f1a2b"), "319556101", "brovko_a" });
+                columns: new[] { "Id", "CreatedAt", "LastActivity", "TgId", "TgName" },
+                values: new object[] { new Guid("d2f8b0c4-3c1e-4b5a-9f6e-7c8d9e0f1a2b"), new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 319556101L, "brovko_a" });
 
             migrationBuilder.InsertData(
                 table: "HrUsers",
@@ -189,6 +192,13 @@ namespace DataLayer.Migrations
                 name: "IX_Answers_UserApplicationId",
                 table: "Answers",
                 column: "UserApplicationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BotUsers_TgId",
+                table: "BotUsers",
+                column: "TgId",
+                unique: true,
+                filter: "\"TgId\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Conditions_QuestionId",

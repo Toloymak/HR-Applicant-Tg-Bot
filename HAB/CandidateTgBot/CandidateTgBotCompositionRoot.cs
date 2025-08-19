@@ -18,6 +18,7 @@ public static class CandidateTgBotCompositionRoot
         service.AddTransient<CandidateBotMessageHandler>();
         service.AddTransient<CandidateBotErrorHandler>();
         service.AddTransient<BotCommandHandler>();
+        service.AddTransient<BotUserService>();
         service.AddTransient<WelcomeCommunicationService>();
         service.AddTransient<VacancyListCommunicationService>();
         service.AddTransient<CallbackMessageHandler>();

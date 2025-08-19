@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using CandidateTgBot.Handlers.Commands;
 using CandidateTgBot.Helpers;
+using CandidateTgBot.Services;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -12,6 +13,7 @@ public class CandidateBotMessageHandler
     private readonly ILogger<CandidateBotMessageHandler> _logger;
     private readonly BotCommandHandler _botCommandHandler;
     private readonly CallbackMessageHandler _callbackMessageHandler;
+    private readonly BotUserService _botUserService;
     private readonly ITelegramBotClient _tgClient;
 
 
@@ -20,11 +22,13 @@ public class CandidateBotMessageHandler
         BotCommandHandler botCommandHandler,
         ButtonCallbackParser buttonCallbackParser,
         CallbackMessageHandler callbackMessageHandler,
+        BotUserService botUserService,
         ITelegramBotClient tgClient)
     {
         _logger = logger;
         _botCommandHandler = botCommandHandler;
         _callbackMessageHandler = callbackMessageHandler;
+        _botUserService = botUserService;
         _tgClient = tgClient;
     }
 
@@ -40,8 +44,8 @@ public class CandidateBotMessageHandler
             _logger.LogError("Received unsupported update type: {UpdateType}", update.Type);
     }
 
-    private async Task HandleCallback(CancellationToken token,
-        CallbackQuery callbackQuery)
+        private async Task HandleCallback(CancellationToken token,
+CallbackQuery callbackQuery)
     {
         var chatId = callbackQuery.Message?.Chat.Id;
         if (chatId is null)
@@ -56,6 +60,22 @@ public class CandidateBotMessageHandler
             callbackQuery.Data,
             chatId
         );
+
+        // Update user activity when they interact with callbacks
+        if (callbackQuery.From != null)
+        {
+            try
+            {
+                await _botUserService.CreateOrUpdateUserAsync(callbackQuery.From, token);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, 
+                    "Failed to create/update user {TgId} ({Username}) from callback", 
+                    callbackQuery.From.Id, callbackQuery.From.Username);
+                // Continue processing the callback even if user update fails
+            }
+        }
             
         await _callbackMessageHandler.HandleCallback(
             chatId.Value, callbackQuery, token);
@@ -72,6 +92,22 @@ public class CandidateBotMessageHandler
             message.Text,
             chatId
         );
+
+        // Create or update user when they send a message
+        if (message.From != null)
+        {
+            try
+            {
+                await _botUserService.CreateOrUpdateUserAsync(message.From, token);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, 
+                    "Failed to create/update user {TgId} ({Username})", 
+                    message.From.Id, message.From.Username);
+                // Continue processing the message even if user creation fails
+            }
+        }
             
         if (message is {} msg)
             await HandleMessage(chatId, msg, token);

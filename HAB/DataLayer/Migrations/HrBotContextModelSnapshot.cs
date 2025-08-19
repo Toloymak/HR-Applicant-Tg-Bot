@@ -53,16 +53,24 @@ namespace DataLayer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("TgId")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("LastActivity")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("TgId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("TgName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TgId")
+                        .IsUnique()
+                        .HasFilter("\"TgId\" IS NOT NULL");
 
                     b.ToTable("BotUsers");
 
@@ -70,7 +78,9 @@ namespace DataLayer.Migrations
                         new
                         {
                             Id = new Guid("d2f8b0c4-3c1e-4b5a-9f6e-7c8d9e0f1a2b"),
-                            TgId = "319556101",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            LastActivity = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            TgId = 319556101L,
                             TgName = "brovko_a"
                         });
                 });

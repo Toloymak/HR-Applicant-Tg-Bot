@@ -31,11 +31,14 @@ public class HrUserRepository
 
         if (botUser == null)
         {
+            var now = DateTime.UtcNow;
             botUser = new BotUserDal
             {
                 Id = Guid.CreateVersion7(),
-                TgId = null,
-                TgName = user.TgName
+                TgId = null, // Will be set when user interacts with bot
+                TgName = user.TgName,
+                LastActivity = now,
+                CreatedAt = now
             };
 
             _context.BotUsers.Add(botUser);

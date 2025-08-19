@@ -30,11 +30,14 @@ public class UserService
             return existingUser.Id;
         }
         
+        var now = DateTime.UtcNow;
         var newUser = new BotUserDal
         {
             Id = Guid.CreateVersion7(),
             TgId = user.TgId,
             TgName = user.TgName,
+            LastActivity = now,
+            CreatedAt = now,
         };
 
         _context.Add(newUser);
