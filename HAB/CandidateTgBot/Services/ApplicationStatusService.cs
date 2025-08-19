@@ -24,71 +24,174 @@ public class ApplicationStatusService
         _logger = logger;
     }
 
-    /// <summary>
+        /// <summary>
     /// Shows application status for a user
     /// </summary>
     public async Task ShowApplicationStatusAsync(
         long chatId,
-         Guid botUserId,
+        Guid botUserId,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            // Check for active application first
-            var activeApplication = await _context.UserApplications
+            // Get all applications for the user (excluding revoked)
+            var allApplications = await _context.UserApplications
                 .Include(a => a.Vacancy)
                 .Include(a => a.Answers)
                     .ThenInclude(ans => ans.Question)
-                .FirstOrDefaultAsync(a => a.BotUserId == botUserId && 
-                                         a.State == ApplicationStatus.InProgress, 
-                                         cancellationToken);
-
-            if (activeApplication != null)
-            {
-                await ShowActiveApplicationStatusAsync(chatId, activeApplication, cancellationToken);
-                return;
-            }
-
-            // Check for completed applications (both CompletedByUser and CompeatedByUserAndStartedNew)
-            var completedApplications = await _context.UserApplications
-                .Include(a => a.Vacancy)
                 .Where(a => a.BotUserId == botUserId && 
-                           (a.State == ApplicationStatus.CompletedByUser || 
-                            a.State == ApplicationStatus.CompetedByUserAndStartedNew) &&
-                           a.State != ApplicationStatus.RevokedByUser)
+                           a.State == ApplicationStatus.CompletedByUser
+                           || a.State == ApplicationStatus.CompetedByUserAndStartedNew)
                 .OrderByDescending(a => a.LastActivity)
                 .ToListAsync(cancellationToken);
 
-            if (completedApplications.Any())
+            if (!allApplications.Any())
             {
-                await ShowCompletedApplicationsStatusAsync(chatId, completedApplications, cancellationToken);
+                await ShowNoApplicationsMessageAsync(chatId, cancellationToken);
                 return;
             }
 
-            // Check for completed applications to show short status
-            var shortStatusApplications = await _context.UserApplications
-                .Include(a => a.Vacancy)
-                .Where(a => a.BotUserId == botUserId && 
-                           (a.State == ApplicationStatus.CompletedByUser || 
-                            a.State == ApplicationStatus.CompetedByUserAndStartedNew) &&
-                           a.State != ApplicationStatus.RevokedByUser)
-                .OrderByDescending(a => a.LastActivity)
-                .ToListAsync(cancellationToken);
-
-            if (shortStatusApplications.Any())
-            {
-                await ShowShortCompletedStatusAsync(chatId, shortStatusApplications, cancellationToken);
-                return;
-            }
-
-            // No applications found
-            await ShowNoApplicationsMessageAsync(chatId, cancellationToken);
+            // Show all applications in one comprehensive status
+            await ShowAllApplicationsStatusAsync(chatId, allApplications, cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error showing application status for user {BotUserId}", botUserId);
             await SendErrorMessageAsync(chatId, cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// Shows all applications in one comprehensive status
+    /// </summary>
+    private async Task ShowAllApplicationsStatusAsync(
+        long chatId,
+        List<UserApplicationDal> applications,
+        CancellationToken cancellationToken)
+    {
+        var statusText = $"📋 **Application Status Overview**\n\n";
+
+        // Group applications by status
+        var activeApplications = applications.Where(a => a.State == ApplicationStatus.InProgress).ToList();
+        var completedApplications = applications.Where(a => a.State == ApplicationStatus.CompletedByUser).ToList();
+        var reviewedApplications = applications.Where(a => a.State == ApplicationStatus.CompetedByUserAndStartedNew).ToList();
+        var canceledApplications = applications.Where(a => a.State == ApplicationStatus.CanceledByUser).ToList();
+
+        // Show active applications with details
+        if (activeApplications.Any())
+        {
+            statusText += $"🔄 **Active Applications ({activeApplications.Count})**\n\n";
+            
+            foreach (var application in activeApplications)
+            {
+                var questions = application.Vacancy?.Questions?.OrderBy(q => q.OrderNumber).ToList() ?? new List<QuestionDal>();
+                var answeredQuestions = application.Answers?.ToList() ?? new List<ApplicationAnswerDal>();
+                var allQuestionsAnswered = questions.Count > 0 && 
+                                          answeredQuestions.Count == questions.Count &&
+                                          questions.All(q => answeredQuestions.Any(a => a.QuestionId == q.Id));
+
+                statusText += $"**📄 {application.Vacancy?.Title}**\n";
+                statusText += $"Started: {application.StartDate:MMM dd, yyyy}\n";
+                
+                if (allQuestionsAnswered)
+                {
+                    statusText += $"Progress: ✅ All questions completed ({answeredQuestions.Count}/{questions.Count})\n";
+                }
+                else
+                {
+                    statusText += $"Progress: 📝 {answeredQuestions.Count}/{questions.Count} questions answered\n";
+                }
+                statusText += "\n";
+            }
+        }
+
+        // Show completed applications
+        if (completedApplications.Any())
+        {
+            statusText += $"✅ **Completed Applications ({completedApplications.Count})**\n\n";
+            
+            foreach (var application in completedApplications)
+            {
+                statusText += $"**📄 {application.Vacancy?.Title}**\n";
+                statusText += $"Completed: {application.LastActivity:MMM dd, yyyy} | Status: ✅ Submitted for Review\n\n";
+            }
+        }
+
+        // Show reviewed applications
+        if (reviewedApplications.Any())
+        {
+            statusText += $"📋 **Reviewed Applications ({reviewedApplications.Count})**\n\n";
+            
+            foreach (var application in reviewedApplications)
+            {
+                statusText += $"**📄 {application.Vacancy?.Title}**\n";
+                statusText += $"Completed: {application.LastActivity:MMM dd, yyyy} | Status: ✅ Review by HR\n\n";
+            }
+        }
+
+        // Show canceled applications
+        if (canceledApplications.Any())
+        {
+            statusText += $"❌ **Canceled Applications ({canceledApplications.Count})**\n\n";
+            
+            foreach (var application in canceledApplications)
+            {
+                statusText += $"**📄 {application.Vacancy?.Title}**\n";
+                statusText += $"Canceled: {application.LastActivity:MMM dd, yyyy}\n\n";
+            }
+        }
+
+        // Add action buttons
+        var buttons = new List<Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton[]>();
+
+        // Add "Start New Application" button if there are active applications with all questions answered
+        var activeWithAllAnswered = activeApplications.Any(a => {
+            var questions = a.Vacancy?.Questions?.OrderBy(q => q.OrderNumber).ToList() ?? new List<QuestionDal>();
+            var answeredQuestions = a.Answers?.ToList() ?? new List<ApplicationAnswerDal>();
+            return questions.Count > 0 && 
+                   answeredQuestions.Count == questions.Count &&
+                   questions.All(q => answeredQuestions.Any(ans => ans.QuestionId == q.Id));
+        });
+
+        if (activeWithAllAnswered)
+        {
+            buttons.Add(new[]
+            {
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData(
+                    text: "🚀 Start New Application",
+                    callbackData: new CandidateTgBot.Types.Callbacks.StartNewApplicationCallback()
+                        .ToTgString().ToString()
+                )
+            });
+        }
+
+        // Add "Revoke Applications" button if there are revokable applications
+        var hasRevokableApplications = completedApplications.Any() || reviewedApplications.Any();
+        if (hasRevokableApplications)
+        {
+            buttons.Add(new[]
+            {
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData(
+                    text: "🗑️ Revoke Applications",
+                    callbackData: new CandidateTgBot.Types.Callbacks.RevokeApplicationListCallback()
+                        .ToTgString().ToString()
+                )
+            });
+        }
+
+        Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup? keyboard = null;
+        if (buttons.Any())
+        {
+            keyboard = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(buttons);
+        }
+
+        await _tgClient.SendMessage(
+            chatId: chatId,
+            text: statusText,
+            parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+            replyMarkup: keyboard,
+            cancellationToken: cancellationToken
+        );
     }
 
     /// <summary>
@@ -99,49 +202,88 @@ public class ApplicationStatusService
         UserApplicationDal application,
         CancellationToken cancellationToken)
     {
-        var statusText = $"📋 **Active Application Status**\n\n" +
-                        $"**Position:** {application.Vacancy?.Title}\n" +
-                        $"**Started:** {application.StartDate:MMM dd, yyyy}\n" +
-                        $"**Last Activity:** {application.LastActivity:MMM dd, yyyy HH:mm}\n\n";
+        var questions = application.Vacancy?.Questions?.OrderBy(q => q.OrderNumber).ToList() ?? new List<QuestionDal>();
+        var answeredQuestions = application.Answers?.ToList() ?? new List<ApplicationAnswerDal>();
+        
+        // Check if all questions are answered
+        var allQuestionsAnswered = questions.Count > 0 && 
+                                  answeredQuestions.Count == questions.Count &&
+                                  questions.All(q => answeredQuestions.Any(a => a.QuestionId == q.Id));
 
-        if (application.Answers?.Any() == true)
+        if (allQuestionsAnswered)
         {
-            statusText += "**📝 Your Answers:**\n\n";
-            
-            var questions = application.Vacancy?.Questions?.OrderBy(q => q.OrderNumber).ToList() ?? new List<QuestionDal>();
-            var answeredQuestions = application.Answers.ToList();
+            // Show simplified status when all questions are answered
+            var statusText = $"📋 **Active Application Status**\n\n" +
+                            $"**Position:** {application.Vacancy?.Title}\n" +
+                            $"**Started:** {application.StartDate:MMM dd, yyyy}\n" +
+                            $"**Last Activity:** {application.LastActivity:MMM dd, yyyy HH:mm}\n" +
+                            $"**Progress:** ✅ All questions completed ({answeredQuestions.Count}/{questions.Count})\n\n" +
+                            $"💡 *Your application is ready for submission. Use /continue to complete the process.*";
 
-            foreach (var question in questions)
+            var keyboard = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(new[]
             {
-                var answer = answeredQuestions.FirstOrDefault(a => a.QuestionId == question.Id);
-                
-                if (answer != null)
+                new[]
                 {
-                    var answerText = GetAnswerDisplayText(answer);
-                    statusText += $"**Q{question.OrderNumber}:** {question.Text}\n" +
-                                $"**A:** {answerText}\n\n";
+                    Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData(
+                        text: "🚀 Start New Application",
+                        callbackData: new CandidateTgBot.Types.Callbacks.StartNewApplicationCallback()
+                            .ToTgString().ToString()
+                    )
                 }
-                else
-                {
-                    statusText += $"**Q{question.OrderNumber}:** {question.Text}\n" +
-                                $"**A:** *Not answered yet*\n\n";
-                }
-            }
+            });
+
+            await _tgClient.SendMessage(
+                chatId: chatId,
+                text: statusText,
+                parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                replyMarkup: keyboard,
+                cancellationToken: cancellationToken
+            );
         }
         else
         {
-            statusText += "**📝 Your Answers:**\n\n" +
-                         "*No questions answered yet.*\n\n";
+            // Show detailed status with questions and answers
+            var statusText = $"📋 **Active Application Status**\n\n" +
+                            $"**Position:** {application.Vacancy?.Title}\n" +
+                            $"**Started:** {application.StartDate:MMM dd, yyyy}\n" +
+                            $"**Last Activity:** {application.LastActivity:MMM dd, yyyy HH:mm}\n\n";
+
+            if (answeredQuestions.Any())
+            {
+                statusText += "**📝 Your Answers:**\n\n";
+                
+                foreach (var question in questions)
+                {
+                    var answer = answeredQuestions.FirstOrDefault(a => a.QuestionId == question.Id);
+                    
+                    if (answer != null)
+                    {
+                        var answerText = GetAnswerDisplayText(answer);
+                        statusText += $"**Q{question.OrderNumber}:** {question.Text}\n" +
+                                    $"**A:** {answerText}\n\n";
+                    }
+                    else
+                    {
+                        statusText += $"**Q{question.OrderNumber}:** {question.Text}\n" +
+                                    $"**A:** *Not answered yet*\n\n";
+                    }
+                }
+            }
+            else
+            {
+                statusText += "**📝 Your Answers:**\n\n" +
+                             "*No questions answered yet.*\n\n";
+            }
+
+            statusText += "💡 *Use /continue to resume your application or /cancel to start over.*";
+
+            await _tgClient.SendMessage(
+                chatId: chatId,
+                text: statusText,
+                parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                cancellationToken: cancellationToken
+            );
         }
-
-        statusText += "💡 *Use /continue to resume your application or /cancel to start over.*";
-
-        await _tgClient.SendMessage(
-            chatId: chatId,
-            text: statusText,
-            parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
-            cancellationToken: cancellationToken
-        );
 
         _logger.LogInformation(
             "Showed active application status for user {BotUserId}, application {ApplicationId}",
@@ -202,13 +344,13 @@ public class ApplicationStatusService
             });
         }
 
-        // Add "Revoke Application" button if there are revokable applications
+        // Add "Revoke Applications" button if there are revokable applications
         if (hasRevokableApplications)
         {
             buttons.Add(new[]
             {
                 Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData(
-                    text: "🗑️ Revoke Application",
+                    text: "🗑️ Revoke Applications",
                     callbackData: new CandidateTgBot.Types.Callbacks.RevokeApplicationListCallback()
                         .ToTgString().ToString()
                 )
@@ -231,6 +373,112 @@ public class ApplicationStatusService
         _logger.LogInformation(
             "Showed completed applications status for user, {Count} applications",
             applications.Count);
+    }
+
+    /// <summary>
+    /// Shows other completed applications as a separate block (when user has active application)
+    /// </summary>
+    private async Task ShowOtherCompletedApplicationsBlockAsync(
+        long chatId,
+        List<UserApplicationDal> applications,
+        CancellationToken cancellationToken)
+    {
+        var statusText = $"📋 **Other Applications**\n\n" +
+                        $"You also have {applications.Count} other completed application(s):\n\n";
+
+        foreach (var application in applications.Take(3)) // Show only first 3
+        {
+            var completionDate = application.LastActivity.ToString("MMM dd, yyyy");
+            var statusDisplay = application.State switch
+            {
+                ApplicationStatus.CompletedByUser => "✅ Submitted for Review",
+                ApplicationStatus.CompetedByUserAndStartedNew => "✅ Review by HR",
+                _ => "Unknown Status"
+            };
+            
+            statusText += $"**📄 {application.Vacancy?.Title}**\n" +
+                         $"Completed: {completionDate} | Status: {statusDisplay}\n\n";
+        }
+
+        if (applications.Count > 3)
+        {
+            statusText += $"*... and {applications.Count - 3} more application(s)*\n\n";
+        }
+
+        // Check if any applications can be revoked
+        var hasRevokableApplications = applications.Any(a => 
+            a.State == ApplicationStatus.CompletedByUser ||
+            a.State == ApplicationStatus.CompetedByUserAndStartedNew);
+
+        Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup? keyboard = null;
+        if (hasRevokableApplications)
+        {
+            keyboard = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(new[]
+            {
+                new[]
+                {
+                    Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData(
+                        text: "🗑️ Revoke Applications",
+                        callbackData: new CandidateTgBot.Types.Callbacks.RevokeApplicationListCallback()
+                            .ToTgString().ToString()
+                    )
+                }
+            });
+        }
+
+        await _tgClient.SendMessage(
+            chatId: chatId,
+            text: statusText,
+            parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+            replyMarkup: keyboard,
+            cancellationToken: cancellationToken
+        );
+    }
+
+    /// <summary>
+    /// Shows completed applications status with start new button
+    /// </summary>
+    private async Task ShowCompletedApplicationsForStartNewAsync(
+        long chatId,
+        List<UserApplicationDal> applications,
+        CancellationToken cancellationToken)
+    {
+        var statusText = $"📋 **Completed Applications**\n\n" +
+                        $"You have {applications.Count} completed application(s):\n\n";
+
+        foreach (var application in applications.Take(3)) // Show only first 3
+        {
+            var completionDate = application.LastActivity.ToString("MMM dd, yyyy");
+            statusText += $"**📄 {application.Vacancy?.Title}**\n" +
+                         $"Completed: {completionDate} | Status: ✅ Submitted for Review\n\n";
+        }
+
+        if (applications.Count > 3)
+        {
+            statusText += $"*... and {applications.Count - 3} more completed application(s)*\n\n";
+        }
+
+        statusText += "💡 *Ready to start a new application?*";
+
+        var keyboard = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(new[]
+        {
+            new[]
+            {
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData(
+                    text: "🚀 Start New Application",
+                    callbackData: new CandidateTgBot.Types.Callbacks.StartNewApplicationCallback()
+                        .ToTgString().ToString()
+                )
+            }
+        });
+
+        await _tgClient.SendMessage(
+            chatId: chatId,
+            text: statusText,
+            parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+            replyMarkup: keyboard,
+            cancellationToken: cancellationToken
+        );
     }
 
     /// <summary>
@@ -293,12 +541,25 @@ public class ApplicationStatusService
     {
         var message = "📭 **No Applications Found**\n\n" +
                      "You don't have any applications yet.\n\n" +
-                     "💡 *Use /start to browse available positions and begin your first application.*";
+                     "💡 *Ready to start your first application?*";
+
+        var keyboard = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(new[]
+        {
+            new[]
+            {
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData(
+                    text: "🚀 Start New Application",
+                    callbackData: new CandidateTgBot.Types.Callbacks.StartNewApplicationCallback()
+                        .ToTgString().ToString()
+                )
+            }
+        });
 
         await _tgClient.SendMessage(
             chatId: chatId,
             text: message,
             parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+            replyMarkup: keyboard,
             cancellationToken: cancellationToken
         );
     }

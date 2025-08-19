@@ -1,7 +1,10 @@
 using CandidateTgBot.Services;
 using CandidateTgBot.Services.CommunicationServices;
 using CandidateTgBot.Types.Callbacks;
+using DataLayer.Contexts;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Shared.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -12,17 +15,20 @@ public class StartNewApplicationCallbackHandler : ICallbackHandler<StartNewAppli
     private readonly ITelegramBotClient _tg;
     private readonly BotUserService _botUserService;
     private readonly WelcomeCommunicationService _welcomeService;
+    private readonly HrBotContext _context;
     private readonly ILogger<StartNewApplicationCallbackHandler> _logger;
 
     public StartNewApplicationCallbackHandler(
         ITelegramBotClient tg,
         BotUserService botUserService,
         WelcomeCommunicationService welcomeService,
+        HrBotContext context,
         ILogger<StartNewApplicationCallbackHandler> logger)
     {
         _tg = tg;
         _botUserService = botUserService;
         _welcomeService = welcomeService;
+        _context = context;
         _logger = logger;
     }
 
@@ -44,6 +50,27 @@ public class StartNewApplicationCallbackHandler : ICallbackHandler<StartNewAppli
                     cancellationToken: ct
                 );
                 return;
+            }
+
+            // Check if user has active applications and update their status
+            var activeApplications = await _context.UserApplications
+                .Where(a => a.BotUserId == botUserId.Value && 
+                           a.State == ApplicationStatus.InProgress)
+                .ToListAsync(ct);
+
+            if (activeApplications.Any())
+            {
+                // Update all active applications to CompetedByUserAndStartedNew
+                foreach (var application in activeApplications)
+                {
+                    application.State = ApplicationStatus.CompetedByUserAndStartedNew;
+                    application.LastActivity = DateTime.UtcNow;
+                }
+                await _context.SaveChangesAsync(ct);
+
+                _logger.LogInformation(
+                    "Updated {Count} active applications to CompetedByUserAndStartedNew for user {BotUserId}",
+                    activeApplications.Count, botUserId.Value);
             }
 
             // Send start message

@@ -267,12 +267,27 @@ public class AnswerService
 
     private async Task SendNoActiveApplicationMessageAsync(long chatId, CancellationToken cancellationToken)
     {
+        var message = "❌ **No Active Application**\n\n" +
+                      "You don't have an active application to answer questions for.\n\n" +
+                      "💡 *Ready to start a new application?*";
+
+        var keyboard = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(new[]
+        {
+            new[]
+            {
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData(
+                    text: "🚀 Start New Application",
+                    callbackData: new CandidateTgBot.Types.Callbacks.StartNewApplicationCallback()
+                        .ToTgString().ToString()
+                )
+            }
+        });
+
         await _tgClient.SendMessage(
             chatId: chatId,
-            text: "❌ **No Active Application**\n\n" +
-                  "You don't have an active application to answer questions for.\n\n" +
-                  "💡 *Use /start to browse available positions and begin a new application.*",
+            text: message,
             parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+            replyMarkup: keyboard,
             cancellationToken: cancellationToken
         );
     }
