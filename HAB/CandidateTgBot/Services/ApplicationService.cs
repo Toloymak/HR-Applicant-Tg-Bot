@@ -167,7 +167,7 @@ public class ApplicationService
     }
 
     /// <summary>
-    /// Checks if user has already applied to a specific vacancy (excluding canceled applications)
+    /// Checks if user has already applied to a specific vacancy (excluding canceled and revoked applications)
     /// </summary>
     /// <param name="botUserId">Bot user ID</param>
     /// <param name="vacancyId">Vacancy ID</param>
@@ -181,7 +181,8 @@ public class ApplicationService
         return await _context.UserApplications
             .AnyAsync(a => a.BotUserId == botUserId && 
                           a.VacancyId == vacancyId && 
-                          a.State != ApplicationStatus.CanceledByUser, cancellationToken);
+                          a.State != ApplicationStatus.CanceledByUser &&
+                          a.State != ApplicationStatus.RevokedByUser, cancellationToken);
     }
 
     /// <summary>

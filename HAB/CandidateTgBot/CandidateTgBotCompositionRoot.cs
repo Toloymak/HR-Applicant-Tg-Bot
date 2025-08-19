@@ -46,5 +46,9 @@ public static class CandidateTgBotCompositionRoot
         service.AddTransient<ICallbackHandler<SendOneMoreApplicationCallback>, SendOneMoreApplicationCallbackHandler>();
         service.AddTransient<ICallbackHandler<ShowStatusCallback>, ShowStatusCallbackHandler>();
         service.AddTransient<ICallbackHandler<StartNewApplicationCallback>, StartNewApplicationCallbackHandler>();
+        service.AddTransient<ICallbackHandler<RevokeApplicationListCallback>, RevokeApplicationListCallbackHandler>();
+        service.AddTransient<ICallbackHandler<RevokeSpecificApplicationCallback>, RevokeSpecificApplicationCallbackHandler>();
+        service.AddTransient<ICallbackHandler<ConfirmRevokeApplicationCallback>, ConfirmRevokeApplicationCallbackHandler>();
+        service.AddTransient<ICallbackHandler<CancelRevokeCallback>, CancelRevokeCallbackHandler>();
     }
 }

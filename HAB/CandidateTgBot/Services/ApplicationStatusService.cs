@@ -29,7 +29,7 @@ public class ApplicationStatusService
     /// </summary>
     public async Task ShowApplicationStatusAsync(
         long chatId,
-        Guid botUserId,
+         Guid botUserId,
         CancellationToken cancellationToken = default)
     {
         try
@@ -54,7 +54,8 @@ public class ApplicationStatusService
                 .Include(a => a.Vacancy)
                 .Where(a => a.BotUserId == botUserId && 
                            (a.State == ApplicationStatus.CompletedByUser || 
-                            a.State == ApplicationStatus.CompetedByUserAndStartedNew))
+                            a.State == ApplicationStatus.CompetedByUserAndStartedNew) &&
+                           a.State != ApplicationStatus.RevokedByUser)
                 .OrderByDescending(a => a.LastActivity)
                 .ToListAsync(cancellationToken);
 
@@ -69,7 +70,8 @@ public class ApplicationStatusService
                 .Include(a => a.Vacancy)
                 .Where(a => a.BotUserId == botUserId && 
                            (a.State == ApplicationStatus.CompletedByUser || 
-                            a.State == ApplicationStatus.CompetedByUserAndStartedNew))
+                            a.State == ApplicationStatus.CompetedByUserAndStartedNew) &&
+                           a.State != ApplicationStatus.RevokedByUser)
                 .OrderByDescending(a => a.LastActivity)
                 .ToListAsync(cancellationToken);
 
@@ -175,25 +177,47 @@ public class ApplicationStatusService
         statusText += "💡 *Your applications have been submitted and are being reviewed by our HR team.*\n\n" +
                      "*You will be notified about the status of your applications.*";
 
-        // Add "Start new" button if all applications are in review
+        // Check if all applications are in review and if any can be revoked
         var allInReview = applications.All(a => 
             a.State == ApplicationStatus.CompletedByUser || 
             a.State == ApplicationStatus.CompetedByUserAndStartedNew);
+        
+        var hasRevokableApplications = applications.Any(a => 
+            a.State == ApplicationStatus.CompletedByUser ||
+            a.State == ApplicationStatus.CompetedByUserAndStartedNew);
 
         Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup? keyboard = null;
+        var buttons = new List<Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton[]>();
+
+        // Add "Start new" button if all applications are in review
         if (allInReview)
         {
-            keyboard = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(new[]
+            buttons.Add(new[]
             {
-                new[]
-                {
-                    Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData(
-                        text: "🚀 Start New Application",
-                        callbackData: new CandidateTgBot.Types.Callbacks.StartNewApplicationCallback()
-                            .ToTgString().ToString()
-                    )
-                }
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData(
+                    text: "🚀 Start New Application",
+                    callbackData: new CandidateTgBot.Types.Callbacks.StartNewApplicationCallback()
+                        .ToTgString().ToString()
+                )
             });
+        }
+
+        // Add "Revoke Application" button if there are revokable applications
+        if (hasRevokableApplications)
+        {
+            buttons.Add(new[]
+            {
+                Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData(
+                    text: "🗑️ Revoke Application",
+                    callbackData: new CandidateTgBot.Types.Callbacks.RevokeApplicationListCallback()
+                        .ToTgString().ToString()
+                )
+            });
+        }
+
+        if (buttons.Any())
+        {
+            keyboard = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(buttons);
         }
 
         await _tgClient.SendMessage(
