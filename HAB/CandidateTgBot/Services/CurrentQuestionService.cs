@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Shared.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
+using CandidateTgBot.Types;
 
 namespace CandidateTgBot.Services;
 
@@ -162,15 +163,15 @@ public class CurrentQuestionService
             case "yesno_required":
                 buttons.Add(new List<InlineKeyboardButton>
                 {
-                    InlineKeyboardButton.WithCallbackData("✅ Yes", $"answer_yes|{question.Id}"),
-                    InlineKeyboardButton.WithCallbackData("❌ No", $"answer_no|{question.Id}")
+                    InlineKeyboardButton.WithCallbackData("✅ Yes", $"answer_yes|{GuidShort.ToBase64Url(question.Id)}"),
+                    InlineKeyboardButton.WithCallbackData("❌ No", $"answer_no|{GuidShort.ToBase64Url(question.Id)}")
                 });
                 break;
 
             case TextAnswerTypeDal.TypeName:
                 buttons.Add(new List<InlineKeyboardButton>
                 {
-                    InlineKeyboardButton.WithCallbackData("✏️ Provide Text Answer", $"answer_text|{question.Id}")
+                    InlineKeyboardButton.WithCallbackData("✏️ Provide Text Answer", $"answer_text|{GuidShort.ToBase64Url(question.Id)}")
                 });
                 break;
         }

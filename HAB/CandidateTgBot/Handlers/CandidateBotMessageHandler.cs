@@ -17,6 +17,7 @@ public class CandidateBotMessageHandler
     private readonly ITelegramBotClient _tgClient;
     private readonly CancelApplicationButtonService _cancelButtonService;
     private readonly BotMessageService _botMessageService;
+    private readonly AnswerService _answerService;
 
 
     public CandidateBotMessageHandler(
@@ -27,7 +28,8 @@ public class CandidateBotMessageHandler
         BotUserService botUserService,
         ITelegramBotClient tgClient,
         CancelApplicationButtonService cancelButtonService,
-        BotMessageService botMessageService)
+        BotMessageService botMessageService,
+        AnswerService answerService)
     {
         _logger = logger;
         _botCommandHandler = botCommandHandler;
@@ -36,6 +38,7 @@ public class CandidateBotMessageHandler
         _tgClient = tgClient;
         _cancelButtonService = cancelButtonService;
         _botMessageService = botMessageService;
+        _answerService = answerService;
     }
 
     public async Task HandleUpdateAsync(
@@ -151,6 +154,20 @@ CallbackQuery callbackQuery)
             // Try other command handlers
             if (await _botCommandHandler.TryExecuteCommand(message.Text, chatId, token))
                 return;
+
+            // Handle text answers for questions
+            if (botUserId.HasValue && !message.Text.StartsWith("/"))
+            {
+                var success = await _answerService.SaveTextAnswerAsync(
+                    chatId, botUserId.Value, message.Text, token);
+
+                if (success)
+                {
+                    // Answer was processed successfully, no need to send additional message
+                    return;
+                }
+                // If not successful, continue to unknown command message
+            }
         }
 
         // Add cancel button to unknown command response if user has active applications

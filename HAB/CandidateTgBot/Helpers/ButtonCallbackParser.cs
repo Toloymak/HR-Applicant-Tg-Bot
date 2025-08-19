@@ -23,7 +23,10 @@ public class ButtonCallbackParser
         { ConfirmCancelApplicationCallback.CommandName, ConfirmCancelApplicationCallback.Parse },
         { ConfirmResetCallback.CommandName, ConfirmResetCallback.Parse },
         { KeepApplicationCallback.CommandName, KeepApplicationCallback.Parse },
-        { KeepProgressCallback.CommandName, KeepProgressCallback.Parse }
+        { KeepProgressCallback.CommandName, KeepProgressCallback.Parse },
+        { AnswerYesCallback.CommandName, AnswerYesCallback.Parse },
+        { AnswerNoCallback.CommandName, AnswerNoCallback.Parse },
+        { AnswerTextCallback.CommandName, AnswerTextCallback.Parse }
     };
 
     public ButtonCallbackParser(ILogger<ButtonCallbackParser> logger)
