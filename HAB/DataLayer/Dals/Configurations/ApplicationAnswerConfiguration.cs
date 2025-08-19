@@ -1,15 +1,18 @@
+using DataLayer.Converters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DataLayer.Dals.Configurations;
 
-public class AnswerConfiguration : IEntityTypeConfiguration<AnswerDal>
+public class ApplicationAnswerConfiguration : IEntityTypeConfiguration<ApplicationAnswerDal>
 {
-    public void Configure(EntityTypeBuilder<AnswerDal> builder)
+    public void Configure(EntityTypeBuilder<ApplicationAnswerDal> builder)
     {
         builder.HasKey(a => a.Id);
 
-        builder.Property(a => a.AnswerText).IsRequired(false);
+        builder.Property(a => a.AnswerValue)
+            .HasConversion<QuestionAnswerValueConverter>()
+            .IsRequired();
 
         builder.HasOne(a => a.UserApplication)
             .WithMany(u => u.Answers)

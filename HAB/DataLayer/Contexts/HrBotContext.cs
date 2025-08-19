@@ -19,7 +19,7 @@ public class HrBotContext : DbContext
     public DbSet<QuestionDal> Questions => Set<QuestionDal>();
     public DbSet<ConditionDal> Conditions => Set<ConditionDal>();
     public DbSet<UserApplicationDal> UserApplications => Set<UserApplicationDal>();
-    public DbSet<AnswerDal> Answers => Set<AnswerDal>();
+    public DbSet<ApplicationAnswerDal> Answers => Set<ApplicationAnswerDal>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

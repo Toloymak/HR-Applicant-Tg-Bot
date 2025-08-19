@@ -82,5 +82,26 @@ public enum ApplicationStatus
 public record Answer
 {
     public required Guid QuestionId { get; set; }
-    public required string AnswerText { get; set; }
+    public required IQuestionAnswerValue AnswerValue { get; set; }
+}
+
+public interface IQuestionAnswerValue
+{
+    string Type { get; }
+}
+
+public record BooleanAnswerValue : IQuestionAnswerValue
+{
+    public const string TypeName = "boolean";
+    public string Type => TypeName;
+    
+    public required bool Value { get; set; }
+}
+
+public record TextAnswerValue : IQuestionAnswerValue
+{
+    public const string TypeName = "text";
+    public string Type => TypeName;
+    
+    public required string Value { get; set; }
 }

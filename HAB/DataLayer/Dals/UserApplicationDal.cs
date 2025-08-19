@@ -30,5 +30,5 @@ public class UserApplicationDal
     /// </summary>
     public required DateTime LastActivity { get; set; }
 
-    public ICollection<AnswerDal>? Answers { get; set; }
+    public ICollection<ApplicationAnswerDal>? Answers { get; set; }
 }

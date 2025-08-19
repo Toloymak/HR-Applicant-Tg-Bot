@@ -64,7 +64,7 @@ Always reference the appropriate Context7 MCP documentation for implementation p
 
 ## ⚠️ Build Verification
 
-**MANDATORY STEP**: After any changes to interfaces, contracts, or adding new services:
+**MANDATORY STEP**: After any changes to interfaces, contracts, adding new services, or database entities:
 ```bash
 cd /path/to/HAB
 dotnet build
@@ -75,6 +75,9 @@ Common issues to watch for:
 - Missing using directives for Telegram.Bot types
 - Incorrect dependency injection registrations
 - Type mismatches in generic interfaces
+- Entity Framework configuration errors
+- Missing value converter registrations
+- Polymorphic type serialization issues
 
 If build fails, check:
 1. Method signatures match interface definitions exactly
@@ -146,6 +149,104 @@ Project-specific patterns:
 - Custom converters for IAnswerCondition polymorphism
 - Seed data configuration
 - Multi-project context sharing
+```
+
+### Database Migrations
+```
+When creating database migrations for this project:
+
+**Migration Creation Process:**
+1. Make changes to DataLayer entities (DALs, configurations)
+2. Run migration from Application project (has EF Core Design package):
+   ```bash
+   cd Application
+   dotnet ef migrations add MigrationName --project ../DataLayer
+   ```
+3. Review generated migration file in DataLayer/Migrations/
+4. Build project to ensure no compilation errors
+5. Apply migration to database when ready:
+   ```bash
+   dotnet ef database update --project ../DataLayer
+   ```
+
+**Important Notes:**
+- Always run migrations from Application project, not DataLayer
+- Migration name should be descriptive (e.g., "RenameAnswerDalToApplicationAnswerDal")
+- Check migration files for data loss warnings
+- Test migrations on development database first
+- Consider data migration scripts for complex schema changes
+
+**Common Migration Scenarios:**
+- Renaming entities: EF Core will detect and handle table renames
+- Adding new columns: Specify default values for existing data
+- Changing column types: May require data conversion logic
+- Adding new entities: Ensure proper foreign key relationships
+- Polymorphic JSON columns: Use custom value converters
+
+**Migration Best Practices:**
+- One migration per logical change
+- Include rollback logic in Down() method
+- Test both Up() and Down() migrations
+- Document breaking changes in migration comments
+- Use meaningful migration names that describe the change
+
+**Project-Specific Migration Patterns:**
+- Polymorphic JSON converters: Follow IAnswerTypeDal pattern
+- Custom value converters: Create both JsonConverter and ValueConverter
+- Entity renames: Update all references (DbContext, configurations, etc.)
+- Seed data: Use HasData() in entity configurations
+- Foreign key relationships: Ensure proper cascade delete behaviors
+
+**Example: Adding New Polymorphic Type**
+```csharp
+// 1. Create interface and implementations
+public interface INewType { string Type { get; } }
+public record TypeA : INewType { public string Type => "type_a"; }
+public record TypeB : INewType { public string Type => "type_b"; }
+
+// 2. Create JSON converter
+public class NewTypeJsonConverter : JsonConverter<INewType> { /* ... */ }
+
+// 3. Create EF Core value converter
+public class NewTypeValueConverter : ValueConverter<INewType, string> { /* ... */ }
+
+// 4. Update entity configuration
+builder.Property(e => e.NewTypeProperty)
+    .HasConversion<NewTypeValueConverter>();
+
+// 5. Create migration
+dotnet ef migrations add AddNewTypeProperty --project ../DataLayer
+```
+
+**Real Example: AnswerDal → ApplicationAnswerDal Refactoring**
+```bash
+# 1. Create new files
+DataLayer/Dals/ApplicationAnswerDal.cs
+DataLayer/Converters/Answers/QuestionAnswerValueConverter.cs
+DataLayer/Dals/Configurations/ApplicationAnswerConfiguration.cs
+
+# 2. Update existing files
+DataLayer/Contexts/HrBotContext.cs (update DbSet)
+DataLayer/Dals/UserApplicationDal.cs (update collection type)
+Shared/Models/Vacancy.cs (update Answer record)
+
+# 3. Delete old files
+DataLayer/Dals/AnswerDal.cs
+DataLayer/Dals/Configurations/AnswerConfiguration.cs
+
+# 4. Build to check for errors
+dotnet build
+
+# 5. Create migration
+cd Application
+dotnet ef migrations add RenameAnswerDalToApplicationAnswerDal --project ../DataLayer
+
+# 6. Review migration file
+# Check DataLayer/Migrations/YYYYMMDDHHMMSS_RenameAnswerDalToApplicationAnswerDal.cs
+
+# 7. Final build verification
+cd ..
+dotnet build
 ```
 
 ### Telegram Bot Development
