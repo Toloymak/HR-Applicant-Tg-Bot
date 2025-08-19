@@ -80,7 +80,7 @@ public class VacancyListCommunicationService
                               (a.State == ApplicationStatus.CompletedByUser ||
                                a.State == ApplicationStatus.ApprovedByHr ||
                                a.State == ApplicationStatus.RejectedByHr ||
-                               a.State == ApplicationStatus.CompeatedByUserAndStartedNew), 
+                               a.State == ApplicationStatus.CompetedByUserAndStartedNew), 
                               cancellationToken);
         }
 

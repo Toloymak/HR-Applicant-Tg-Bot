@@ -58,7 +58,7 @@ public class SendOneMoreApplicationCallbackHandler : ICallbackHandler<SendOneMor
             // Update the completed application status
             await _applicationService.UpdateApplicationStatusAsync(
                 command.CompletedApplicationId, 
-                ApplicationStatus.CompeatedByUserAndStartedNew, 
+                ApplicationStatus.CompetedByUserAndStartedNew, 
                 ct);
 
             // Send confirmation message

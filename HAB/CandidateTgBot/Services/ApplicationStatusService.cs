@@ -54,7 +54,7 @@ public class ApplicationStatusService
                 .Include(a => a.Vacancy)
                 .Where(a => a.BotUserId == botUserId && 
                            (a.State == ApplicationStatus.CompletedByUser || 
-                            a.State == ApplicationStatus.CompeatedByUserAndStartedNew))
+                            a.State == ApplicationStatus.CompetedByUserAndStartedNew))
                 .OrderByDescending(a => a.LastActivity)
                 .ToListAsync(cancellationToken);
 
@@ -69,7 +69,7 @@ public class ApplicationStatusService
                 .Include(a => a.Vacancy)
                 .Where(a => a.BotUserId == botUserId && 
                            (a.State == ApplicationStatus.CompletedByUser || 
-                            a.State == ApplicationStatus.CompeatedByUserAndStartedNew))
+                            a.State == ApplicationStatus.CompetedByUserAndStartedNew))
                 .OrderByDescending(a => a.LastActivity)
                 .ToListAsync(cancellationToken);
 
@@ -163,7 +163,7 @@ public class ApplicationStatusService
             var statusDisplay = application.State switch
             {
                 ApplicationStatus.CompletedByUser => "✅ Submitted for Review",
-                ApplicationStatus.CompeatedByUserAndStartedNew => "✅ Review by HR",
+                ApplicationStatus.CompetedByUserAndStartedNew => "✅ Review by HR",
                 _ => "Unknown Status"
             };
             
@@ -178,7 +178,7 @@ public class ApplicationStatusService
         // Add "Start new" button if all applications are in review
         var allInReview = applications.All(a => 
             a.State == ApplicationStatus.CompletedByUser || 
-            a.State == ApplicationStatus.CompeatedByUserAndStartedNew);
+            a.State == ApplicationStatus.CompetedByUserAndStartedNew);
 
         Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup? keyboard = null;
         if (allInReview)
@@ -226,7 +226,7 @@ public class ApplicationStatusService
             var statusDisplay = application.State switch
             {
                 ApplicationStatus.CompletedByUser => "✅ Submitted for Review",
-                ApplicationStatus.CompeatedByUserAndStartedNew => "✅ Review by HR",
+                ApplicationStatus.CompetedByUserAndStartedNew => "✅ Review by HR",
                 _ => "Unknown Status"
             };
             

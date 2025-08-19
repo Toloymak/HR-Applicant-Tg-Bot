@@ -71,13 +71,14 @@ public record UserApplication
 
 public enum ApplicationStatus
 {
-    Created,
-    InProgress,
-    CompletedByUser,
-    RejectedByHr,
-    ApprovedByHr,
-    CanceledByUser,
-    CompeatedByUserAndStartedNew,
+    Created = 0,
+    InProgress = 1,
+    CompletedByUser = 2,
+    RejectedByHr = 3,
+    ApprovedByHr = 4,
+    CanceledByUser = 5,
+    CompetedByUserAndStartedNew = 6,
+    RevokedByUser = 7,
 }
 
 public record Answer
