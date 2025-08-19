@@ -15,6 +15,7 @@ public class BotMessageService
     private readonly WelcomeCommunicationService _welcomeService;
     private readonly CancelApplicationButtonService _cancelButtonService;
     private readonly ApplicationService _applicationService;
+    private readonly CurrentQuestionService _questionService;
     private readonly ILogger<BotMessageService> _logger;
 
     public BotMessageService(
@@ -22,12 +23,14 @@ public class BotMessageService
         WelcomeCommunicationService welcomeService,
         CancelApplicationButtonService cancelButtonService,
         ApplicationService applicationService,
+        CurrentQuestionService questionService,
         ILogger<BotMessageService> logger)
     {
         _tgClient = tgClient;
         _welcomeService = welcomeService;
         _cancelButtonService = cancelButtonService;
         _applicationService = applicationService;
+        _questionService = questionService;
         _logger = logger;
     }
 
@@ -169,23 +172,31 @@ public class BotMessageService
 
             if (activeApplication?.Vacancy != null)
             {
-                var cancelKeyboard = await _cancelButtonService.CreateCancelButtonKeyboardAsync(
-                    botUserId.Value, cancellationToken);
-
                 await _tgClient.SendMessage(
                     chatId: chatId,
                     text: $"📋 **Continuing Your Application**\n\n" +
                           $"You're working on: **{activeApplication.Vacancy.Title}**\n\n" +
-                          $"🔄 *Ready to continue where you left off!*\n\n" +
-                          $"💡 *You can cancel this application anytime using the button below.*",
+                          $"🔄 *Let's continue where you left off...*",
                     parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
-                    replyMarkup: cancelKeyboard,
                     cancellationToken: cancellationToken
                 );
 
                 _logger.LogInformation(
                     "User continued application {ApplicationId} for vacancy '{VacancyTitle}' in chat {ChatId}",
                     activeApplication.Id, activeApplication.Vacancy.Title, chatId);
+
+                // Show the current question
+                var questionSent = await _questionService.SendCurrentQuestionAsync(
+                    chatId, activeApplication.Id, botUserId.Value, cancellationToken);
+
+                if (!questionSent)
+                {
+                    await _tgClient.SendMessage(
+                        chatId: chatId,
+                        text: "❌ Unable to load your current question. Please try again later.",
+                        cancellationToken: cancellationToken
+                    );
+                }
 
                 return;
             }

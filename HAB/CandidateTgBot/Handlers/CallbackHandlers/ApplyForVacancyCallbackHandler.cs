@@ -15,6 +15,7 @@ public class ApplyForVacancyCallbackHandler : ICallbackHandler<ApplyForVacancyCa
     private readonly BotUserService _botUserService;
     private readonly ApplicationService _applicationService;
     private readonly HrBotContext _context;
+    private readonly CurrentQuestionService _questionService;
     private readonly ILogger<ApplyForVacancyCallbackHandler> _logger;
 
     public ApplyForVacancyCallbackHandler(
@@ -22,12 +23,14 @@ public class ApplyForVacancyCallbackHandler : ICallbackHandler<ApplyForVacancyCa
         BotUserService botUserService,
         ApplicationService applicationService,
         HrBotContext context,
+        CurrentQuestionService questionService,
         ILogger<ApplyForVacancyCallbackHandler> logger)
     {
         _tg = tg;
         _botUserService = botUserService;
         _applicationService = applicationService;
         _context = context;
+        _questionService = questionService;
         _logger = logger;
     }
 
@@ -96,9 +99,7 @@ public class ApplyForVacancyCallbackHandler : ICallbackHandler<ApplyForVacancyCa
                 chatId: chatId,
                 text: $"🎯 **Application Started!**\n\n" +
                       $"You are now applying for: **{vacancy.Title}**\n\n" +
-                      $"📝 Your application has been created and saved. " +
-                      $"Next, you'll be asked a series of questions to complete your application.\n\n" +
-                      $"💡 *Tip: You can return to complete your application later if needed.*",
+                      $"📝 Let's begin with the first question...",
                 parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
                 cancellationToken: ct
             );
@@ -107,13 +108,18 @@ public class ApplyForVacancyCallbackHandler : ICallbackHandler<ApplyForVacancyCa
                 "User {TgId} ({Username}) started application {ApplicationId} for vacancy '{VacancyTitle}' ({VacancyId})",
                 botUser.TgId, botUser.TgName, application.Id, vacancy.Title, vacancy.Id);
 
-            // TODO: Start the question flow
-            // This will be implemented in the next step to guide users through questions
-            await _tg.SendMessage(
-                chatId: chatId,
-                text: "🔄 Question flow will be implemented next. Stay tuned!",
-                cancellationToken: ct
-            );
+            // Start the question flow
+            var questionSent = await _questionService.SendCurrentQuestionAsync(
+                chatId, application.Id, botUser.Id, ct);
+
+            if (!questionSent)
+            {
+                await _tg.SendMessage(
+                    chatId: chatId,
+                    text: "❌ Unable to load questions for this vacancy. Please contact support.",
+                    cancellationToken: ct
+                );
+            }
         }
         catch (Exception ex)
         {
