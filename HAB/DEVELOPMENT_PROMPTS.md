@@ -258,10 +258,20 @@ When developing bot features, use /telegrambots/telegram.bot for:
 - Webhook configuration
 
 Project architecture:
-- IMenuBotCommand interface for commands
-- ICallbackHandler for inline keyboards
-- Communication services for complex interactions
-- Error handling with CandidateBotErrorHandler
+- IMenuBotCommand interface for commands (/start, /help, /reset, /continue, /status)
+- ICallbackHandler for inline keyboards with comprehensive user flows
+- Communication services for complex interactions (vacancy lists, status displays)
+- Error handling with CandidateBotErrorHandler and actionable recovery options
+- Application lifecycle management with status tracking
+- Dynamic question flow with polymorphic answer storage
+- Multi-step confirmation flows for sensitive actions
+
+Key patterns:
+- Always include actionable buttons in error messages
+- Use confirmation dialogs for destructive actions
+- Provide comprehensive status information
+- Support re-application after cancellation/revocation
+- Implement polymorphic data storage for different answer types
 ```
 
 ## Best Practices Reminder
@@ -273,6 +283,9 @@ Project architecture:
 5. **Consider functional programming** patterns with LanguageExt.Core
 6. **Test with real Telegram bot** integration when developing bot features
 7. **🔨 CRITICAL: Always build the project after making contract/interface changes** - Run `dotnet build` to ensure all implementations are correct
+8. **Design user-friendly error recovery** - Include actionable buttons in error messages
+9. **Implement confirmation flows** for destructive actions (cancellation, revocation)
+10. **Support polymorphic data storage** for different answer types using EF Core Value Converters
 
 ## Documentation Priority Order
 
@@ -282,3 +295,45 @@ Project architecture:
 4. **Coverage**: Consider snippet count for comprehensive examples
 
 Remember: Context7 MCP provides up-to-date, authoritative documentation that's better than generic web searches or outdated examples.
+
+## Recent Development Patterns (January 2025)
+
+### Error Recovery Design
+```
+When designing error messages for the Telegram bot:
+- Always include actionable buttons for immediate recovery
+- Use clear, friendly language that guides users to next steps
+- Provide context about what went wrong and how to fix it
+- Example: "No Active Application" → "Ready to start a new application?" with "Start New Application" button
+```
+
+### Polymorphic Data Storage
+```
+When implementing polymorphic data storage:
+- Create interface (e.g., IQuestionAnswerValue) with type discriminator
+- Implement concrete types (e.g., BooleanAnswerValue, TextAnswerValue)
+- Create JsonConverter for serialization/deserialization
+- Create ValueConverter for EF Core database storage
+- Register converters in entity configuration
+- Follow existing patterns (see AnswerDal → ApplicationAnswerDal refactoring)
+```
+
+### Multi-Step User Flows
+```
+When implementing complex user interactions:
+- Use confirmation dialogs for destructive actions
+- Provide clear feedback at each step
+- Allow users to cancel or go back
+- Maintain state consistency throughout the flow
+- Example: Application revocation → Confirmation → Success feedback
+```
+
+### Application Status Management
+```
+When working with application statuses:
+- Consider all eight status types in logic
+- Exclude appropriate statuses from queries (e.g., RevokedByUser from re-application checks)
+- Provide appropriate actions for each status
+- Update status timestamps for tracking
+- Use eager loading for efficient status displays
+```

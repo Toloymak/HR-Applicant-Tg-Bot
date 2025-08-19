@@ -82,10 +82,13 @@ HAB/
 - **Responsive Design**: MudGrid system for responsive layouts
 
 #### Telegram Bot Architecture
-- **Command Handlers**: `IMenuBotCommand` interface for bot commands
-- **Callback Handlers**: `ICallbackHandler` for inline keyboard callbacks
-- **Communication Services**: Specialized services for different bot interactions
-- **Error Handling**: Custom error handler for bot exceptions
+- **Command Handlers**: `IMenuBotCommand` interface for bot commands (`/start`, `/help`, `/reset`, `/continue`, `/status`)
+- **Callback Handlers**: `ICallbackHandler` for inline keyboard callbacks with comprehensive user interaction flows
+- **Communication Services**: Specialized services for different bot interactions (vacancy lists, welcome messages, status displays)
+- **Error Handling**: Custom error handler for bot exceptions with actionable recovery options
+- **Application Management**: Complete lifecycle management from creation to completion/revocation
+- **Question Flow**: Dynamic question answering with Yes/No and text input support
+- **Status Tracking**: Multi-status application tracking (`Created`, `InProgress`, `CompletedByUser`, `RejectedByHr`, `ApprovedByHr`, `CanceledByUser`, `CompeatedByUserAndStartedNew`, `RevokedByUser`)
 
 ## Database Schema
 
@@ -93,12 +96,14 @@ HAB/
 - **HrUser**: HR personnel management
 - **Vacancy**: Job position definitions with questions
 - **BotUser**: Telegram user information
-- **UserApplication**: Candidate applications
-- **Question/Answer**: Dynamic questionnaire system
+- **UserApplication**: Candidate applications with comprehensive status tracking
+- **Question/Answer**: Dynamic questionnaire system with polymorphic answer types
 - **Condition**: Conditional logic for questions
+- **ApplicationAnswer**: Polymorphic answer storage supporting boolean and text responses
 
 ### Custom Converters
 - **ConditionAnswerConverter**: JSON converter for `IAnswerCondition` polymorphism
+- **QuestionAnswerValueConverter**: Handles polymorphic `IQuestionAnswerValue` (BooleanAnswerValue, TextAnswerValue)
 - **AnswerTypeConverter**: Handles different answer types (YesNo, Text, etc.)
 
 ## Configuration
@@ -147,8 +152,9 @@ HAB/
 
 ### Error Handling
 - **Global Exception Handling**: Centralized error handling middleware
-- **Bot Error Handling**: Specialized error handling for Telegram bot operations
+- **Bot Error Handling**: Specialized error handling for Telegram bot operations with actionable recovery options
 - **Client-Side Errors**: MudBlazor snackbar notifications for user feedback
+- **User-Friendly Error Recovery**: Error messages include buttons for immediate action (e.g., "Start New Application" for no active application scenarios)
 
 ## Available Documentation Resources (Context7 MCP)
 
@@ -233,10 +239,13 @@ HAB/
 - Maintain API versioning and documentation
 
 ### Telegram Bot Development
-- Implement proper command and callback handling
+- Implement proper command and callback handling with comprehensive user flows
 - Use structured logging for bot operations
 - Handle Telegram API rate limits
-- Implement proper error recovery
+- Implement proper error recovery with actionable user guidance
+- Design user-friendly error messages with recovery buttons
+- Support multi-step confirmation flows for sensitive actions
+- Provide comprehensive application status tracking and management
 
 ## Security Considerations
 
@@ -273,10 +282,12 @@ HAB/
 - Async/await patterns throughout
 
 ### Bot Performance
-- Efficient message handling
+- Efficient message handling with comprehensive callback processing
 - Webhook vs. polling considerations
 - Rate limit compliance
 - Memory management for long-running processes
+- Optimized database queries with eager loading for application status displays
+- Efficient polymorphic data serialization for answer storage
 
 ## Deployment Considerations
 
@@ -303,3 +314,15 @@ HAB/
 *Last Updated: January 2025*
 *Framework Versions: .NET 9.0, MudBlazor 8.6.0, Telegram.Bot 22.6.0, EF Core 9.0.4*
 *Documentation Resources: Context7 MCP with comprehensive coverage for all major frameworks*
+
+## Recent Major Updates
+
+### Enhanced User Experience (January 2025)
+- **Comprehensive Application Management**: Complete lifecycle tracking from creation to completion/revocation
+- **Dynamic Question Flow**: Support for Yes/No and text questions with polymorphic answer storage
+- **User-Friendly Error Recovery**: Error messages include actionable buttons for immediate recovery
+- **Multi-Step Confirmation Flows**: Safe handling of sensitive actions like application cancellation and revocation
+- **Comprehensive Status Tracking**: Eight distinct application statuses with appropriate user actions
+- **Re-application Support**: Users can re-apply for vacancies after cancellation or revocation
+- **Enhanced `/status` Command**: Complete overview of all applications with relevant actions
+- **Polymorphic Answer Storage**: Efficient storage of different answer types using EF Core Value Converters
