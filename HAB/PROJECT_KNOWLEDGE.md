@@ -27,6 +27,10 @@ A sophisticated HR management system built with ASP.NET Core 9.0, Blazor WebAsse
 - **Authentication**: JWT Bearer tokens with custom Telegram auth
 - **HTTP Client**: Refit 8.0.0 for API communication
 - **State Management**: Custom AuthenticationStateProvider
+- **Functional Programming**: LanguageExt.Core 4.4.9 for monadic operations
+- **Dependency Injection**: Scrutor 6.1.0 for advanced DI scenarios
+- **JWT Handling**: System.IdentityModel.Tokens.Jwt 8.11.0
+- **Code Quality**: JetBrains.Annotations 2024.3.0
 - **Package Manager**: .NET 9.0
 
 ### Backend (Application)
@@ -40,11 +44,12 @@ A sophisticated HR management system built with ASP.NET Core 9.0, Blazor WebAsse
 - **Library**: Telegram.Bot 22.6.0
 - **Architecture**: Command and Callback handler patterns
 - **Integration**: Direct communication with main application services
-- **Serialization**: MessagePack 3.1.4 for efficient data handling
+- **Serialization**: MessagePack 3.1.4 with MessagePack.Annotations for efficient data handling
+- **Logging**: Microsoft.Extensions.Logging.Abstractions 9.0.4
 
 ### Data Layer (DataLayer)
 - **ORM**: Entity Framework Core 9.0.4
-- **Database**: PostgreSQL (via Npgsql)
+- **Database**: PostgreSQL via Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4
 - **Converters**: Custom JSON converters for complex types
 - **Migrations**: Code-first approach with migration support
 
@@ -147,20 +152,71 @@ HAB/
 
 ## Available Documentation Resources (Context7 MCP)
 
-### MudBlazor Documentation
+### Primary Documentation Sources
+
+#### MudBlazor Documentation
 - **Library ID**: `/websites/mudblazor`
 - **Coverage**: 19,623 code snippets
-- **Topics**: Components, layout, forms, theming, validation
+- **Trust Score**: N/A (Website documentation)
+- **Topics**: Components, layout, forms, theming, validation, Material Design
+- **Alternative**: `/mudblazor/mudblazor` (37 snippets, Trust Score: 7.8)
 
-### ASP.NET Core Documentation  
+#### ASP.NET Core Documentation  
 - **Library ID**: `/dotnet/aspnetcore.docs`
 - **Coverage**: 16,278 code snippets
-- **Topics**: Blazor authentication, JWT, API development, EF Core
+- **Trust Score**: 8.3
+- **Topics**: Blazor authentication, JWT, API development, EF Core, WebAssembly
+- **Alternative**: `/websites/learn_microsoft-en-us-aspnet-core` (15,787 snippets, Trust Score: 7.5)
 
-### Telegram Bot Documentation
+#### Blazor Documentation
+- **Library ID**: `/dotnet/blazor-samples`
+- **Coverage**: 202 code snippets
+- **Trust Score**: 8.3
+- **Topics**: Sample applications, component development, WebAssembly patterns
+
+#### Telegram Bot Documentation
 - **Library ID**: `/telegrambots/telegram.bot`
-- **Coverage**: Comprehensive bot development patterns
-- **Topics**: Handlers, callbacks, webhooks, message processing
+- **Coverage**: 8 code snippets
+- **Trust Score**: 8.1
+- **Topics**: .NET Client for Telegram Bot API, handlers, callbacks
+- **Alternative**: `/websites/core_telegram_bots_api` (220 snippets, Trust Score: 7.5)
+
+#### Entity Framework Core Documentation
+- **Library ID**: `/dotnet/entityframework.docs`
+- **Coverage**: 3,712 code snippets
+- **Trust Score**: 8.3
+- **Topics**: ORM patterns, migrations, LINQ queries, PostgreSQL integration
+- **Alternative**: `/dotnet/efcore` (47 snippets, Trust Score: 8.3)
+
+#### PostgreSQL Documentation
+- **Library ID**: `/websites/www_postgresql_org-docs`
+- **Coverage**: 61,101 code snippets
+- **Trust Score**: 7.5
+- **Topics**: Database administration, SQL queries, performance optimization
+- **Alternative**: `/postgres/postgres` (89 snippets, Trust Score: 8.4)
+
+#### .NET Core Documentation
+- **Library ID**: `/websites/learn_microsoft-en-us-dotnet`
+- **Coverage**: 24,663 code snippets
+- **Trust Score**: 7.5
+- **Topics**: Cross-platform development, dependency injection, hosting
+- **Alternative**: `/microsoft/dotnet` (1,941 snippets, Trust Score: 9.9)
+
+### Additional Useful Resources
+
+#### C# Documentation
+- **Library ID**: `/websites/learn_microsoft-en-us-dotnet-csharp`
+- **Coverage**: 477,410 code snippets
+- **Trust Score**: 7.5
+- **Topics**: Language features, async/await, LINQ, generics
+
+#### JWT Authentication
+- **Library ID**: Available through ASP.NET Core docs
+- **Topics**: Bearer token authentication, security, claims-based authorization
+
+#### Refit HTTP Client
+- **Library ID**: Available through .NET ecosystem docs
+- **Topics**: HTTP client generation, API communication patterns
 
 ## Development Guidelines
 
@@ -245,4 +301,5 @@ HAB/
 ---
 
 *Last Updated: January 2025*
-*Framework Versions: .NET 9.0, MudBlazor 8.6.0, Telegram.Bot 22.6.0*
+*Framework Versions: .NET 9.0, MudBlazor 8.6.0, Telegram.Bot 22.6.0, EF Core 9.0.4*
+*Documentation Resources: Context7 MCP with comprehensive coverage for all major frameworks*
