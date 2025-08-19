@@ -3,6 +3,7 @@ using System;
 using DataLayer.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataLayer.Migrations
 {
     [DbContext(typeof(HrBotContext))]
-    partial class HrBotContextModelSnapshot : ModelSnapshot
+    [Migration("20250819155021_AddUserApplicationTracking")]
+    partial class AddUserApplicationTracking
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -181,80 +184,6 @@ namespace DataLayer.Migrations
                     b.HasIndex("VacancyId1");
 
                     b.ToTable("Questions");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("10000001-0001-0001-0001-000000000001"),
-                            Answer = "{\"Type\":\"yesno_required\",\"Expected\":true,\"UnexpectedAnswerRejectText\":\"We require at least 3 years of software development experience for this position.\"}",
-                            OrderNumber = 1,
-                            Text = "Do you have at least 3 years of experience in software development?",
-                            VacancyId = new Guid("11111111-1111-1111-1111-111111111111")
-                        },
-                        new
-                        {
-                            Id = new Guid("10000001-0001-0001-0001-000000000002"),
-                            Answer = "{\"Type\":\"text\"}",
-                            OrderNumber = 2,
-                            Text = "Please describe your experience with C# and .NET technologies.",
-                            VacancyId = new Guid("11111111-1111-1111-1111-111111111111")
-                        },
-                        new
-                        {
-                            Id = new Guid("10000001-0001-0001-0001-000000000003"),
-                            Answer = "{\"Type\":\"yesno\"}",
-                            OrderNumber = 3,
-                            Text = "Are you comfortable working in an Agile/Scrum environment?",
-                            VacancyId = new Guid("11111111-1111-1111-1111-111111111111")
-                        },
-                        new
-                        {
-                            Id = new Guid("20000001-0001-0001-0001-000000000001"),
-                            Answer = "{\"Type\":\"yesno_required\",\"Expected\":true,\"UnexpectedAnswerRejectText\":\"SQL knowledge is essential for this Data Analyst position.\"}",
-                            OrderNumber = 1,
-                            Text = "Do you have experience with SQL and database querying?",
-                            VacancyId = new Guid("22222222-2222-2222-2222-222222222222")
-                        },
-                        new
-                        {
-                            Id = new Guid("20000001-0001-0001-0001-000000000002"),
-                            Answer = "{\"Type\":\"text\"}",
-                            OrderNumber = 2,
-                            Text = "Please describe your experience with data visualization tools (e.g., Tableau, Power BI, Python).",
-                            VacancyId = new Guid("22222222-2222-2222-2222-222222222222")
-                        },
-                        new
-                        {
-                            Id = new Guid("20000001-0001-0001-0001-000000000003"),
-                            Answer = "{\"Type\":\"yesno\"}",
-                            OrderNumber = 3,
-                            Text = "Have you worked with statistical analysis or machine learning before?",
-                            VacancyId = new Guid("22222222-2222-2222-2222-222222222222")
-                        },
-                        new
-                        {
-                            Id = new Guid("30000001-0001-0001-0001-000000000001"),
-                            Answer = "{\"Type\":\"yesno_required\",\"Expected\":true,\"UnexpectedAnswerRejectText\":\"We require at least 2 years of project management experience for this role.\"}",
-                            OrderNumber = 1,
-                            Text = "Do you have at least 2 years of project management experience?",
-                            VacancyId = new Guid("33333333-3333-3333-3333-333333333333")
-                        },
-                        new
-                        {
-                            Id = new Guid("30000001-0001-0001-0001-000000000002"),
-                            Answer = "{\"Type\":\"text\"}",
-                            OrderNumber = 2,
-                            Text = "Please describe your experience managing technical teams and software development projects.",
-                            VacancyId = new Guid("33333333-3333-3333-3333-333333333333")
-                        },
-                        new
-                        {
-                            Id = new Guid("30000001-0001-0001-0001-000000000003"),
-                            Answer = "{\"Type\":\"yesno\"}",
-                            OrderNumber = 3,
-                            Text = "Are you familiar with project management methodologies like Agile, Scrum, or Kanban?",
-                            VacancyId = new Guid("33333333-3333-3333-3333-333333333333")
-                        });
                 });
 
             modelBuilder.Entity("DataLayer.Dals.UserApplicationDal", b =>
@@ -341,41 +270,6 @@ namespace DataLayer.Migrations
                     b.HasIndex("HrId");
 
                     b.ToTable("Vacancies");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DefaultRejectText = "Thank you for your interest in the Senior Software Developer position. Unfortunately, we have decided to move forward with other candidates at this time. We wish you the best in your job search!",
-                            Description = "We are looking for an experienced software developer to join our team. You will work on cutting-edge projects using modern technologies and contribute to building scalable applications.",
-                            FinishedApplicationText = "🎉 Congratulations! You have successfully completed your application for the Senior Software Developer position. Our HR team will review your responses and get back to you within 5-7 business days. Thank you for your interest in joining our team!",
-                            IsActive = true,
-                            IsArchived = false,
-                            Title = "Senior Software Developer"
-                        },
-                        new
-                        {
-                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DefaultRejectText = "Thank you for applying to the Data Analyst position. After careful consideration, we have decided to proceed with other candidates. We appreciate your time and interest in our company.",
-                            Description = "Join our data team as a Data Analyst! You'll work with large datasets, create insightful reports, and help drive data-driven decision making across the organization.",
-                            FinishedApplicationText = "✅ Your application for the Data Analyst position has been submitted successfully! We're excited to learn more about your background. Our team will review your application and contact you within 3-5 business days.",
-                            IsActive = true,
-                            IsArchived = false,
-                            Title = "Data Analyst"
-                        },
-                        new
-                        {
-                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DefaultRejectText = "Thank you for your application for the Technical Project Manager role. While your background is impressive, we have chosen to move forward with candidates whose experience more closely aligns with our current needs.",
-                            Description = "We're seeking a Technical Project Manager to lead cross-functional teams and deliver complex software projects. You'll coordinate with developers, designers, and stakeholders to ensure successful project delivery.",
-                            FinishedApplicationText = "🚀 Thank you for completing your application for the Technical Project Manager position! We're impressed by your interest in leading our technical initiatives. Expect to hear from us within one week regarding next steps.",
-                            IsActive = true,
-                            IsArchived = false,
-                            Title = "Technical Project Manager"
-                        });
                 });
 
             modelBuilder.Entity("DataLayer.Dals.AnswerDal", b =>

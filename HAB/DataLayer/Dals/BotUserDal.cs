@@ -28,4 +28,9 @@ public class BotUserDal
     /// Date and time when the user was first created
     /// </summary>
     public required DateTime CreatedAt { get; set; }
+    
+    /// <summary>
+    /// Navigation property for user applications submitted by this bot user
+    /// </summary>
+    public ICollection<UserApplicationDal> Applications { get; set; } = new List<UserApplicationDal>();
 }

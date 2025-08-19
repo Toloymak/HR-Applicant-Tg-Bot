@@ -9,6 +9,12 @@ public class UserApplicationConfiguration : IEntityTypeConfiguration<UserApplica
     {
         builder.HasKey(a => a.Id);
 
+        // Relationship with BotUser
+        builder.HasOne(a => a.BotUser)
+            .WithMany(u => u.Applications)
+            .HasForeignKey(a => a.BotUserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.HasOne(a => a.Vacancy)
             .WithMany(v => v.Applications)
             .HasForeignKey(a => a.VacancyId);
@@ -17,5 +23,15 @@ public class UserApplicationConfiguration : IEntityTypeConfiguration<UserApplica
             .WithMany()
             .HasForeignKey(a => a.LastQuestionId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Required date fields
+        builder.Property(a => a.StartDate).IsRequired();
+        builder.Property(a => a.LastActivity).IsRequired();
+
+        // Indexes for performance
+        builder.HasIndex(a => a.BotUserId);
+        builder.HasIndex(a => a.State);
+        builder.HasIndex(a => a.StartDate);
+        builder.HasIndex(a => a.LastActivity);
     }
 }

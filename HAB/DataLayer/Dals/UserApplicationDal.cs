@@ -6,6 +6,12 @@ public class UserApplicationDal
 {
     public Guid Id { get; set; }
 
+    /// <summary>
+    /// Foreign key to the BotUser who submitted this application
+    /// </summary>
+    public Guid BotUserId { get; set; }
+    public BotUserDal BotUser { get; set; } = null!;
+
     public Guid VacancyId { get; set; }
     public VacancyDal? Vacancy { get; set; }
 
@@ -13,6 +19,16 @@ public class UserApplicationDal
     public QuestionDal? LastQuestion { get; set; }
 
     public ApplicationStatus State { get; set; }
+
+    /// <summary>
+    /// When the user started filling out this application
+    /// </summary>
+    public required DateTime StartDate { get; set; }
+
+    /// <summary>
+    /// Last time the user interacted with this application
+    /// </summary>
+    public required DateTime LastActivity { get; set; }
 
     public ICollection<AnswerDal>? Answers { get; set; }
 }
