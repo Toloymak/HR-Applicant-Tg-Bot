@@ -19,6 +19,14 @@ public class WelcomeCommunicationService
         long chatId, 
         CancellationToken cancellationToken)
     {
+        await SendWelcomeMessageAsync(chatId, null, cancellationToken);
+    }
+
+    public async Task SendWelcomeMessageAsync(
+        long chatId, 
+        Guid? botUserId,
+        CancellationToken cancellationToken)
+    {
         var welcomeMessage = 
             $"Hello, welcome to the Candidate Bot! \n" +
             "This bot will help you apply for the position. ";
@@ -29,6 +37,6 @@ public class WelcomeCommunicationService
             cancellationToken: cancellationToken
         );
         
-        await _vacancyListService.SendVacancyListAsync(chatId, cancellationToken);
+        await _vacancyListService.SendVacancyListAsync(chatId, botUserId, cancellationToken);
     }
 }

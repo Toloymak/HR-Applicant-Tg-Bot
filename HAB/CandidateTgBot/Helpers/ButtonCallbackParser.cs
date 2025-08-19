@@ -18,7 +18,12 @@ public class ButtonCallbackParser
         { VacancyInfoCallback.CommandName, VacancyInfoCallback.Parse },
         { UpdateVacancyListCallback.CommandName, UpdateVacancyListCallback.Parse },
         { ApplyForVacancyCallback.CommandName, ApplyForVacancyCallback.Parse },
-        { ShowOtherVacanciesCallback.CommandName, ShowOtherVacanciesCallback.Parse }
+        { ShowOtherVacanciesCallback.CommandName, ShowOtherVacanciesCallback.Parse },
+        { CancelApplicationCallback.CommandName, CancelApplicationCallback.Parse },
+        { ConfirmCancelApplicationCallback.CommandName, ConfirmCancelApplicationCallback.Parse },
+        { ConfirmResetCallback.CommandName, ConfirmResetCallback.Parse },
+        { KeepApplicationCallback.CommandName, KeepApplicationCallback.Parse },
+        { KeepProgressCallback.CommandName, KeepProgressCallback.Parse }
     };
 
     public ButtonCallbackParser(ILogger<ButtonCallbackParser> logger)

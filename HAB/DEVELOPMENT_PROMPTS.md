@@ -61,6 +61,42 @@ Data Layer:
 - Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4
 
 Always reference the appropriate Context7 MCP documentation for implementation patterns and best practices.
+
+## ⚠️ Build Verification
+
+**MANDATORY STEP**: After any changes to interfaces, contracts, or adding new services:
+```bash
+cd /path/to/HAB
+dotnet build
+```
+
+Common issues to watch for:
+- Interface method signature mismatches (e.g., `Handle` vs `HandleAsync`)
+- Missing using directives for Telegram.Bot types
+- Incorrect dependency injection registrations
+- Type mismatches in generic interfaces
+
+If build fails, check:
+1. Method signatures match interface definitions exactly
+2. All required using statements are present
+3. Services are properly registered in composition root
+4. Generic type constraints are satisfied
+
+### Common Build Fixes
+
+**Callback Handler Interface Issues:**
+- Use `Handle(long chatId, T command, CallbackQuery query, CancellationToken ct)` not `HandleAsync`
+- Parameter order: `chatId` first, then `command`, then `query`, then `ct`
+
+**Telegram.Bot Type Issues:**
+- Use `InlineKeyboardMarkup?` instead of `IReplyMarkup?`
+- Import `using Telegram.Bot.Types.ReplyMarkups;` for keyboard types
+- Import `using Telegram.Bot.Types;` for basic types
+
+**Service Registration:**
+- Add all new services to `CandidateTgBotCompositionRoot.cs`
+- Register callback handlers with correct generic types
+- Use `AddTransient<ICallbackHandler<T>, THandler>()` pattern
 ```
 
 ## Specific Development Scenarios
@@ -135,6 +171,7 @@ Project architecture:
 4. **Maintain consistency** with existing patterns and naming conventions
 5. **Consider functional programming** patterns with LanguageExt.Core
 6. **Test with real Telegram bot** integration when developing bot features
+7. **🔨 CRITICAL: Always build the project after making contract/interface changes** - Run `dotnet build` to ensure all implementations are correct
 
 ## Documentation Priority Order
 

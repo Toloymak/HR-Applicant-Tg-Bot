@@ -20,6 +20,8 @@ public static class CandidateTgBotCompositionRoot
         service.AddTransient<BotCommandHandler>();
         service.AddTransient<BotUserService>();
         service.AddTransient<ApplicationService>();
+        service.AddTransient<CancelApplicationButtonService>();
+        service.AddTransient<BotMessageService>();
         service.AddTransient<WelcomeCommunicationService>();
         service.AddTransient<VacancyListCommunicationService>();
         service.AddTransient<CallbackMessageHandler>();
@@ -30,5 +32,10 @@ public static class CandidateTgBotCompositionRoot
         service.AddTransient<ICallbackHandler<UpdateVacancyListCallback>, UpdateVacancyListCallbackHandler>();
         service.AddTransient<ICallbackHandler<ShowOtherVacanciesCallback>, ShowOtherVacanciesCallbackHandler>();
         service.AddTransient<ICallbackHandler<ApplyForVacancyCallback>, ApplyForVacancyCallbackHandler>();
+        service.AddTransient<ICallbackHandler<CancelApplicationCallback>, CancelApplicationCallbackHandler>();
+        service.AddTransient<ICallbackHandler<ConfirmCancelApplicationCallback>, ConfirmCancelApplicationCallbackHandler>();
+        service.AddTransient<ICallbackHandler<ConfirmResetCallback>, ConfirmResetCallbackHandler>();
+        service.AddTransient<ICallbackHandler<KeepApplicationCallback>, KeepApplicationCallbackHandler>();
+        service.AddTransient<ICallbackHandler<KeepProgressCallback>, KeepProgressCallbackHandler>();
     }
 }

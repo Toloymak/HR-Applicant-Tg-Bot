@@ -73,9 +73,10 @@ public enum ApplicationStatus
 {
     Created,
     InProgress,
-    Completed,
-    Rejected,
-    Approved,
+    CompletedByUser,
+    RejectedByHr,
+    ApprovedByHr,
+    CanceledByUser,
 }
 
 public record Answer

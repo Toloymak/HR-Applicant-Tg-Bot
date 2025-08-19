@@ -131,7 +131,7 @@ public class ApplicationService
     }
 
     /// <summary>
-    /// Gets user's active applications
+    /// Gets user's active applications (excluding canceled ones)
     /// </summary>
     /// <param name="botUserId">Bot user ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -167,7 +167,7 @@ public class ApplicationService
     }
 
     /// <summary>
-    /// Checks if user has already applied to a specific vacancy
+    /// Checks if user has already applied to a specific vacancy (excluding canceled applications)
     /// </summary>
     /// <param name="botUserId">Bot user ID</param>
     /// <param name="vacancyId">Vacancy ID</param>
@@ -179,6 +179,42 @@ public class ApplicationService
         CancellationToken cancellationToken = default)
     {
         return await _context.UserApplications
-            .AnyAsync(a => a.BotUserId == botUserId && a.VacancyId == vacancyId, cancellationToken);
+            .AnyAsync(a => a.BotUserId == botUserId && 
+                          a.VacancyId == vacancyId && 
+                          a.State != ApplicationStatus.CanceledByUser, cancellationToken);
+    }
+
+    /// <summary>
+    /// Checks if user has any active applications
+    /// </summary>
+    /// <param name="botUserId">Bot user ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>True if user has active applications</returns>
+    public async Task<bool> HasUserActiveApplicationsAsync(
+        Guid botUserId, 
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.UserApplications
+            .AnyAsync(a => a.BotUserId == botUserId && 
+                          (a.State == ApplicationStatus.Created || a.State == ApplicationStatus.InProgress), 
+                     cancellationToken);
+    }
+
+    /// <summary>
+    /// Gets the most recent active application for a user
+    /// </summary>
+    /// <param name="botUserId">Bot user ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Most recent active application or null</returns>
+    public async Task<UserApplicationDal?> GetUserMostRecentActiveApplicationAsync(
+        Guid botUserId, 
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.UserApplications
+            .Include(a => a.Vacancy)
+            .Where(a => a.BotUserId == botUserId && 
+                       (a.State == ApplicationStatus.Created || a.State == ApplicationStatus.InProgress))
+            .OrderByDescending(a => a.LastActivity)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 }

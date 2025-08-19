@@ -31,6 +31,17 @@ public class CallbackMessageHandler
         CallbackQuery callback,
         CancellationToken token)
     {
+        // Handle special dismiss callback
+        if (callback.Data == "dismiss")
+        {
+            await _tgClient.AnswerCallbackQuery(
+                callbackQueryId: callback.Id,
+                text: "Action canceled",
+                cancellationToken: token
+            );
+            return;
+        }
+
         if (_buttonCallbackParser.ParseCallback(callback) is { } command)
         {
             if (await TryDispatchToHandler(chatId, command, callback, token))

@@ -15,6 +15,8 @@ public class CandidateBotMessageHandler
     private readonly CallbackMessageHandler _callbackMessageHandler;
     private readonly BotUserService _botUserService;
     private readonly ITelegramBotClient _tgClient;
+    private readonly CancelApplicationButtonService _cancelButtonService;
+    private readonly BotMessageService _botMessageService;
 
 
     public CandidateBotMessageHandler(
@@ -23,13 +25,17 @@ public class CandidateBotMessageHandler
         ButtonCallbackParser buttonCallbackParser,
         CallbackMessageHandler callbackMessageHandler,
         BotUserService botUserService,
-        ITelegramBotClient tgClient)
+        ITelegramBotClient tgClient,
+        CancelApplicationButtonService cancelButtonService,
+        BotMessageService botMessageService)
     {
         _logger = logger;
         _botCommandHandler = botCommandHandler;
         _callbackMessageHandler = callbackMessageHandler;
         _botUserService = botUserService;
         _tgClient = tgClient;
+        _cancelButtonService = cancelButtonService;
+        _botMessageService = botMessageService;
     }
 
     public async Task HandleUpdateAsync(
@@ -94,11 +100,13 @@ CallbackQuery callbackQuery)
         );
 
         // Create or update user when they send a message
+        Guid? botUserId = null;
         if (message.From != null)
         {
             try
             {
-                await _botUserService.CreateOrUpdateUserAsync(message.From, token);
+                var botUser = await _botUserService.CreateOrUpdateUserAsync(message.From, token);
+                botUserId = botUser.Id;
             }
             catch (Exception ex)
             {
@@ -110,22 +118,47 @@ CallbackQuery callbackQuery)
         }
             
         if (message is {} msg)
-            await HandleMessage(chatId, msg, token);
+            await HandleMessage(chatId, msg, botUserId, token);
     }
 
     private async Task HandleMessage(
         long chatId,
         Message message,
+        Guid? botUserId,
         CancellationToken token)
     {
-        if (message.Text != null
-            && await _botCommandHandler
-                .TryExecuteCommand(message.Text, chatId, token))
-            return;
+        // Handle common commands with user context
+        if (message.Text != null)
+        {
+            var normalizedCommand = message.Text.Trim().ToLowerInvariant();
+            
+            switch (normalizedCommand)
+            {
+                case "/start":
+                    await _botMessageService.SendStartMessageAsync(chatId, botUserId, token);
+                    return;
+                case "/help":
+                    await _botMessageService.SendHelpMessageAsync(chatId, botUserId, token);
+                    return;
+                case "/reset":
+                    await _botMessageService.SendResetMessageAsync(chatId, botUserId, token);
+                    return;
+            }
+
+            // Try other command handlers
+            if (await _botCommandHandler.TryExecuteCommand(message.Text, chatId, token))
+                return;
+        }
+
+        // Add cancel button to unknown command response if user has active applications
+        var cancelKeyboard = botUserId.HasValue
+            ? await _cancelButtonService.CreateCancelButtonKeyboardAsync(botUserId.Value, token)
+            : null;
 
         await _tgClient.SendMessage(
             chatId: chatId,
             text: "🤖 I didn't understand that command. Please use /start to begin, /help to see available commands, or /reset to start over.",
+            replyMarkup: cancelKeyboard,
             cancellationToken: token
         );
     }
