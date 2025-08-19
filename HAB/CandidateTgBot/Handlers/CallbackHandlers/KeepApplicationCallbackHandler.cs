@@ -31,7 +31,7 @@ public class KeepApplicationCallbackHandler : ICallbackHandler<KeepApplicationCa
                 chatId: chatId,
                 text: "🎯 **Great, let's continue!**\n\n" +
                       "Your application is safe and you can continue working on it.\n\n" +
-                      "💡 *Use /start to see your current application status or continue where you left off.*",
+                      "💡 *Use /continue to resume where you left off.*",
                 parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
                 cancellationToken: ct
             );

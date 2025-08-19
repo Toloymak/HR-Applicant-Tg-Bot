@@ -81,10 +81,11 @@ public class BotMessageService
         CancellationToken cancellationToken)
     {
         var helpText = "🤖 **Available Commands:**\n\n" +
-                      "/start - Start using the bot\n" +
+                      "/start - Start using the bot or browse positions\n" +
+                      "/continue - Continue your current application\n" +
                       "/help - Show this help message\n" +
                       "/reset - Reset and start over\n\n" +
-                      "💡 *Use /start to navigate through available positions.*";
+                      "💡 *Use /start to browse positions or /continue to resume your application.*";
 
         await _tgClient.SendMessage(
             chatId: chatId,
@@ -150,5 +151,58 @@ public class BotMessageService
         );
         
         await _welcomeService.SendWelcomeMessageAsync(chatId, botUserId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a continue message - only works if user has active applications
+    /// </summary>
+    public async Task SendContinueMessageAsync(
+        long chatId, 
+        Guid? botUserId, 
+        CancellationToken cancellationToken)
+    {
+        if (botUserId.HasValue)
+        {
+            // Check if user has active applications
+            var activeApplication = await _applicationService.GetUserMostRecentActiveApplicationAsync(
+                botUserId.Value, cancellationToken);
+
+            if (activeApplication?.Vacancy != null)
+            {
+                var cancelKeyboard = await _cancelButtonService.CreateCancelButtonKeyboardAsync(
+                    botUserId.Value, cancellationToken);
+
+                await _tgClient.SendMessage(
+                    chatId: chatId,
+                    text: $"📋 **Continuing Your Application**\n\n" +
+                          $"You're working on: **{activeApplication.Vacancy.Title}**\n\n" +
+                          $"🔄 *Ready to continue where you left off!*\n\n" +
+                          $"💡 *You can cancel this application anytime using the button below.*",
+                    parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                    replyMarkup: cancelKeyboard,
+                    cancellationToken: cancellationToken
+                );
+
+                _logger.LogInformation(
+                    "User continued application {ApplicationId} for vacancy '{VacancyTitle}' in chat {ChatId}",
+                    activeApplication.Id, activeApplication.Vacancy.Title, chatId);
+
+                return;
+            }
+        }
+
+        // No active applications found
+        await _tgClient.SendMessage(
+            chatId: chatId,
+            text: "📭 **No Active Applications**\n\n" +
+                  "You don't have any active applications to continue.\n\n" +
+                  "💡 *Use /start to browse available positions and begin a new application.*",
+            parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+            cancellationToken: cancellationToken
+        );
+
+        _logger.LogInformation(
+            "User tried to continue but has no active applications in chat {ChatId}",
+            chatId);
     }
 }

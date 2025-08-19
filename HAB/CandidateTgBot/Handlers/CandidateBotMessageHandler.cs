@@ -143,6 +143,9 @@ CallbackQuery callbackQuery)
                 case "/reset":
                     await _botMessageService.SendResetMessageAsync(chatId, botUserId, token);
                     return;
+                case "/continue":
+                    await _botMessageService.SendContinueMessageAsync(chatId, botUserId, token);
+                    return;
             }
 
             // Try other command handlers
