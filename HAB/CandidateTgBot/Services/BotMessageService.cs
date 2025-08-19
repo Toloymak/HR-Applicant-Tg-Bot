@@ -16,6 +16,7 @@ public class BotMessageService
     private readonly CancelApplicationButtonService _cancelButtonService;
     private readonly ApplicationService _applicationService;
     private readonly CurrentQuestionService _questionService;
+    private readonly ApplicationStatusService _statusService;
     private readonly ILogger<BotMessageService> _logger;
 
     public BotMessageService(
@@ -24,6 +25,7 @@ public class BotMessageService
         CancelApplicationButtonService cancelButtonService,
         ApplicationService applicationService,
         CurrentQuestionService questionService,
+        ApplicationStatusService statusService,
         ILogger<BotMessageService> logger)
     {
         _tgClient = tgClient;
@@ -31,6 +33,7 @@ public class BotMessageService
         _cancelButtonService = cancelButtonService;
         _applicationService = applicationService;
         _questionService = questionService;
+        _statusService = statusService;
         _logger = logger;
     }
 
@@ -86,9 +89,10 @@ public class BotMessageService
         var helpText = "🤖 **Available Commands:**\n\n" +
                       "/start - Start using the bot or browse positions\n" +
                       "/continue - Continue your current application\n" +
+                      "/status - Show your application status and answers\n" +
                       "/help - Show this help message\n" +
                       "/reset - Reset and start over\n\n" +
-                      "💡 *Use /start to browse positions or /continue to resume your application.*";
+                      "💡 *Use /start to browse positions, /continue to resume, or /status to check your progress.*";
 
         await _tgClient.SendMessage(
             chatId: chatId,
@@ -215,5 +219,29 @@ public class BotMessageService
         _logger.LogInformation(
             "User tried to continue but has no active applications in chat {ChatId}",
             chatId);
+    }
+
+    /// <summary>
+    /// Sends application status information
+    /// </summary>
+    public async Task SendStatusMessageAsync(
+        long chatId,
+        Guid? botUserId,
+        CancellationToken cancellationToken)
+    {
+        if (botUserId.HasValue)
+        {
+            await _statusService.ShowApplicationStatusAsync(chatId, botUserId.Value, cancellationToken);
+        }
+        else
+        {
+            await _tgClient.SendMessage(
+                chatId: chatId,
+                text: "❌ **Unable to Identify User**\n\n" +
+                      "Please try again or contact support if the issue persists.",
+                parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                cancellationToken: cancellationToken
+            );
+        }
     }
 }

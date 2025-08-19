@@ -23,6 +23,7 @@ public static class CandidateTgBotCompositionRoot
         service.AddTransient<CancelApplicationButtonService>();
         service.AddTransient<CurrentQuestionService>();
         service.AddTransient<AnswerService>();
+        service.AddTransient<ApplicationStatusService>();
         service.AddTransient<BotMessageService>();
         service.AddTransient<WelcomeCommunicationService>();
         service.AddTransient<VacancyListCommunicationService>();

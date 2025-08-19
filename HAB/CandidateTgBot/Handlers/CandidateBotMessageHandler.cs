@@ -149,6 +149,9 @@ CallbackQuery callbackQuery)
                 case "/continue":
                     await _botMessageService.SendContinueMessageAsync(chatId, botUserId, token);
                     return;
+                case "/status":
+                    await _botMessageService.SendStatusMessageAsync(chatId, botUserId, token);
+                    return;
             }
 
             // Try other command handlers
