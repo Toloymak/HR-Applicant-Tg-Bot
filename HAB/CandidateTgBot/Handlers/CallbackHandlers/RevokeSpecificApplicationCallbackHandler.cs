@@ -1,4 +1,7 @@
+using CandidateTgBot.Extensions;
 using CandidateTgBot.Services;
+using CandidateTgBot.Services.CommunicationServices;
+using CandidateTgBot.Services.DataProviders;
 using CandidateTgBot.Types.Callbacks;
 using DataLayer.Contexts;
 using Microsoft.EntityFrameworkCore;
@@ -13,20 +16,24 @@ namespace CandidateTgBot.Handlers.CallbackHandlers;
 public class RevokeSpecificApplicationCallbackHandler : ICallbackHandler<RevokeSpecificApplicationCallback>
 {
     private readonly ITelegramBotClient _tg;
-    private readonly BotUserService _botUserService;
     private readonly HrBotContext _context;
     private readonly ILogger<RevokeSpecificApplicationCallbackHandler> _logger;
+    private readonly ISendUnableToIdentifyMessage _sendUnableToIdentifyMessage;
+    private readonly IProvideUserFromCallback _userProvider;
 
     public RevokeSpecificApplicationCallbackHandler(
         ITelegramBotClient tg,
         BotUserService botUserService,
         HrBotContext context,
-        ILogger<RevokeSpecificApplicationCallbackHandler> logger)
+        ILogger<RevokeSpecificApplicationCallbackHandler> logger,
+        ISendUnableToIdentifyMessage sendUnableToIdentifyMessage,
+        IProvideUserFromCallback userProvider)
     {
         _tg = tg;
-        _botUserService = botUserService;
         _context = context;
         _logger = logger;
+        _sendUnableToIdentifyMessage = sendUnableToIdentifyMessage;
+        _userProvider = userProvider;
     }
 
     public async Task Handle(
@@ -37,15 +44,10 @@ public class RevokeSpecificApplicationCallbackHandler : ICallbackHandler<RevokeS
     {
         try
         {
-            // Get bot user ID from the callback query
-            var botUserId = await GetBotUserIdFromCallback(query, ct);
-            if (botUserId == null)
+            var botUserId = await _userProvider.GetBotUserId(query, ct);
+            if (botUserId is null)
             {
-                await _tg.SendMessage(
-                    chatId: chatId,
-                    text: "❌ Unable to identify your user account. Please try again.",
-                    cancellationToken: ct
-                );
+                await _sendUnableToIdentifyMessage.Send(chatId, ct);
                 return;
             }
 
@@ -54,8 +56,7 @@ public class RevokeSpecificApplicationCallbackHandler : ICallbackHandler<RevokeS
                 .Include(a => a.Vacancy)
                 .FirstOrDefaultAsync(a => a.Id == command.ApplicationId && 
                                          a.BotUserId == botUserId.Value &&
-                                         (a.State == ApplicationStatus.CompletedByUser ||
-                                          a.State == ApplicationStatus.CompetedByUserAndStartedNew), ct);
+                                         a.State == ApplicationStatus.ReviewByHr, ct);
 
             if (application == null)
             {
@@ -71,29 +72,20 @@ public class RevokeSpecificApplicationCallbackHandler : ICallbackHandler<RevokeS
             }
 
             // Create confirmation keyboard
-            var keyboard = new InlineKeyboardMarkup(new[]
-            {
-                new[]
-                {
+            var keyboard = new InlineKeyboardMarkup([
+                [
                     InlineKeyboardButton.WithCallbackData(
                         text: "✅ Yes, Revoke Application",
                         callbackData: new ConfirmRevokeApplicationCallback { ApplicationId = application.Id }
                             .ToTgString().ToString()
                     )
-                },
-                new[]
-                {
-                    InlineKeyboardButton.WithCallbackData(
-                        text: "❌ No, Keep Application",
-                        callbackData: new CancelRevokeCallback().ToTgString().ToString()
-                    )
-                }
-            });
+                ],
+                TgButtonProvider.Applications.CancelRevokeApplication.ToArray()
+            ]);
 
             var statusText = application.State switch
             {
-                ApplicationStatus.CompletedByUser => "Submitted for Review",
-                ApplicationStatus.CompetedByUserAndStartedNew => "Review by HR",
+                ApplicationStatus.Canceled => "Submitted for Review",
                 _ => "Unknown Status"
             };
 
@@ -132,22 +124,6 @@ public class RevokeSpecificApplicationCallbackHandler : ICallbackHandler<RevokeS
                 text: "❌ An error occurred while processing your request. Please try again.",
                 cancellationToken: ct
             );
-        }
-    }
-
-    private async Task<Guid?> GetBotUserIdFromCallback(CallbackQuery query, CancellationToken ct)
-    {
-        if (query.From == null) return null;
-        
-        try
-        {
-            var botUser = await _botUserService.CreateOrUpdateUserAsync(query.From, ct);
-            return botUser?.Id;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting bot user for Telegram user {TgId}", query.From.Id);
-            return null;
         }
     }
 }

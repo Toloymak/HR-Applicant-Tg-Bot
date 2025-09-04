@@ -11,7 +11,9 @@ public class StartCommandHandler : IMenuBotCommand
     public static string Command => "start";
     public static string Description => "Start using the bot";
     
-    public StartCommandHandler(ITelegramBotClient botClient, WelcomeCommunicationService welcomeCommunicationService)
+    public StartCommandHandler(
+        ITelegramBotClient botClient,
+        WelcomeCommunicationService welcomeCommunicationService)
     {
         _botClient = botClient;
         _welcomeCommunicationService = welcomeCommunicationService;

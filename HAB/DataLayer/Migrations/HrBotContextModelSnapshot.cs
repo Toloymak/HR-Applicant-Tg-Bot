@@ -266,6 +266,9 @@ namespace DataLayer.Migrations
                     b.Property<Guid>("BotUserId")
                         .HasColumnType("uuid");
 
+                    b.Property<long>("ChatId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("LastActivity")
                         .HasColumnType("timestamp with time zone");
 
@@ -284,6 +287,8 @@ namespace DataLayer.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BotUserId");
+
+                    b.HasIndex("ChatId");
 
                     b.HasIndex("LastActivity");
 

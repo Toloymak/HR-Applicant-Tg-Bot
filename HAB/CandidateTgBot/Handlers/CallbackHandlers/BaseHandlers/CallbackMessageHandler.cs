@@ -1,5 +1,6 @@
 using CandidateTgBot.Handlers.CallbackHandlers;
 using CandidateTgBot.Helpers;
+using CandidateTgBot.Services.CommunicationServices;
 using CandidateTgBot.Types.Callbacks;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
@@ -13,17 +14,20 @@ public class CallbackMessageHandler
     private readonly ButtonCallbackParser _buttonCallbackParser;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<CallbackMessageHandler> _logger;
+    private readonly ISendCommandParsingErrorMessage _sendCommandParsingErrorMessage;
 
     public CallbackMessageHandler(
         ITelegramBotClient tgClient,
         ButtonCallbackParser buttonCallbackParser,
         IServiceProvider serviceProvider,
-        ILogger<CallbackMessageHandler> logger)
+        ILogger<CallbackMessageHandler> logger,
+        ISendCommandParsingErrorMessage sendCommandParsingErrorMessage)
     {
         _tgClient = tgClient;
         _buttonCallbackParser = buttonCallbackParser;
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _sendCommandParsingErrorMessage = sendCommandParsingErrorMessage;
     }
 
     public async Task HandleCallback(
@@ -48,18 +52,7 @@ public class CallbackMessageHandler
                 return;
         }
 
-        await _tgClient.SendMessage(
-            chatId: chatId,
-            text: $"Error handling command ({callback.Data})",
-            cancellationToken: token
-        );
-                
-        await _tgClient.AnswerCallbackQuery(
-            callbackQueryId: callback.Id,
-            text: "Sorry, I couldn't parse the command, contact support",
-            showAlert: true,
-            cancellationToken: token
-        );
+        await _sendCommandParsingErrorMessage.Send(chatId, callback, token);
     }
 
     private async Task<bool> TryDispatchToHandler(

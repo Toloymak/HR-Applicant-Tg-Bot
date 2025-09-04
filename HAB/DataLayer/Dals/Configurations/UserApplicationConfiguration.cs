@@ -28,10 +28,14 @@ public class UserApplicationConfiguration : IEntityTypeConfiguration<UserApplica
         builder.Property(a => a.StartDate).IsRequired();
         builder.Property(a => a.LastActivity).IsRequired();
 
+        // ChatId is required for sending messages to users
+        builder.Property(a => a.ChatId).IsRequired();
+
         // Indexes for performance
         builder.HasIndex(a => a.BotUserId);
         builder.HasIndex(a => a.State);
         builder.HasIndex(a => a.StartDate);
         builder.HasIndex(a => a.LastActivity);
+        builder.HasIndex(a => a.ChatId);
     }
 }

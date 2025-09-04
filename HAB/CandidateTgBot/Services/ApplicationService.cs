@@ -3,6 +3,7 @@ using DataLayer.Dals;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shared.Models;
+using Telegram.Bot;
 
 namespace CandidateTgBot.Services;
 
@@ -22,43 +23,28 @@ public class ApplicationService
     /// </summary>
     /// <param name="botUserId">The ID of the BotUser applying</param>
     /// <param name="vacancyId">The ID of the vacancy being applied to</param>
+    /// <param name="chatId">The Telegram Chat ID for sending messages to the user</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The created UserApplicationDal</returns>
     public async Task<UserApplicationDal> CreateApplicationAsync(
         Guid botUserId, 
         Guid vacancyId, 
+        long chatId,
         CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
 
-        // Check if user already has an active application for this vacancy
-        var existingApplication = await _context.UserApplications
-            .FirstOrDefaultAsync(
-                a => a.BotUserId == botUserId && 
-                     a.VacancyId == vacancyId && 
-                     (a.State == ApplicationStatus.Created || a.State == ApplicationStatus.InProgress), 
-                cancellationToken);
-
-        if (existingApplication != null)
-        {
-            // Update last activity on existing application
-            existingApplication.LastActivity = now;
-            await _context.SaveChangesAsync(cancellationToken);
-
-            _logger.LogInformation(
-                "Resumed existing application {ApplicationId} for user {BotUserId} and vacancy {VacancyId}",
-                existingApplication.Id, botUserId, vacancyId);
-
-            return existingApplication;
-        }
-
         // Verify vacancy exists and is active
         var vacancy = await _context.Vacancies
-            .FirstOrDefaultAsync(v => v.Id == vacancyId && v.IsActive, cancellationToken);
+            .FirstOrDefaultAsync(v => 
+                v.Id == vacancyId 
+                && v.IsActive,
+                cancellationToken);
 
         if (vacancy == null)
         {
-            throw new InvalidOperationException($"Vacancy {vacancyId} not found or not active");
+            throw new InvalidOperationException(
+                $"Vacancy {vacancyId} not found or not active");
         }
 
         // Create new application
@@ -67,7 +53,8 @@ public class ApplicationService
             Id = Guid.NewGuid(),
             BotUserId = botUserId,
             VacancyId = vacancyId,
-            State = ApplicationStatus.Created,
+            ChatId = chatId,
+            State = ApplicationStatus.InProgress,
             StartDate = now,
             LastActivity = now,
             LastQuestionId = null // Will be set when questions are started
@@ -108,7 +95,7 @@ public class ApplicationService
     /// <param name="applicationId">Application ID</param>
     /// <param name="newStatus">New status</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public async Task UpdateApplicationStatusAsync(
+    public async Task UpdateApplicationStatus(
         Guid applicationId, 
         ApplicationStatus newStatus, 
         CancellationToken cancellationToken = default)
@@ -143,9 +130,52 @@ public class ApplicationService
         return await _context.UserApplications
             .Include(a => a.Vacancy)
             .Where(a => a.BotUserId == botUserId && 
-                       (a.State == ApplicationStatus.Created || a.State == ApplicationStatus.InProgress))
+                       a.State == ApplicationStatus.InProgress)
             .OrderByDescending(a => a.LastActivity)
             .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a status update message to the user about their application
+    /// </summary>
+    /// <param name="applicationId">Application ID</param>
+    /// <param name="message">Message to send</param>
+    /// <param name="telegramClient">Telegram bot client</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    public async Task SendStatusUpdateToUserAsync(
+        Guid applicationId,
+        string message,
+        ITelegramBotClient telegramClient,
+        CancellationToken cancellationToken = default)
+    {
+        var application = await _context.UserApplications
+            .FirstOrDefaultAsync(a => a.Id == applicationId, cancellationToken);
+
+        if (application == null)
+        {
+            _logger.LogWarning("Application {ApplicationId} not found for status update", applicationId);
+            return;
+        }
+
+        try
+        {
+            await telegramClient.SendMessage(
+                chatId: application.ChatId,
+                text: message,
+                parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                cancellationToken: cancellationToken
+            );
+
+            _logger.LogInformation(
+                "Sent status update to user for application {ApplicationId} in chat {ChatId}",
+                applicationId, application.ChatId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, 
+                "Failed to send status update to user for application {ApplicationId} in chat {ChatId}",
+                applicationId, application.ChatId);
+        }
     }
 
     /// <summary>
@@ -171,18 +201,23 @@ public class ApplicationService
     /// </summary>
     /// <param name="botUserId">Bot user ID</param>
     /// <param name="vacancyId">Vacancy ID</param>
-    /// <param name="cancellationToken">Cancellation token</param>
+    /// <param name="ct">Cancellation token</param>
     /// <returns>True if user has already applied</returns>
     public async Task<bool> HasUserAppliedToVacancyAsync(
         Guid botUserId, 
         Guid vacancyId, 
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
+        ApplicationStatus[] activeState = [
+            ApplicationStatus.InProgress,
+            ApplicationStatus.ReviewByHr
+        ];
+        
         return await _context.UserApplications
             .AnyAsync(a => a.BotUserId == botUserId && 
                           a.VacancyId == vacancyId && 
-                          a.State != ApplicationStatus.CanceledByUser &&
-                          a.State != ApplicationStatus.RevokedByUser, cancellationToken);
+                          activeState.Contains(a.State),
+                ct);
     }
 
     /// <summary>
@@ -197,7 +232,7 @@ public class ApplicationService
     {
         return await _context.UserApplications
             .AnyAsync(a => a.BotUserId == botUserId && 
-                          (a.State == ApplicationStatus.Created || a.State == ApplicationStatus.InProgress), 
+                           a.State == ApplicationStatus.InProgress, 
                      cancellationToken);
     }
 
@@ -214,7 +249,7 @@ public class ApplicationService
         return await _context.UserApplications
             .Include(a => a.Vacancy)
             .Where(a => a.BotUserId == botUserId && 
-                       (a.State == ApplicationStatus.Created || a.State == ApplicationStatus.InProgress))
+                       (a.State == ApplicationStatus.InProgress))
             .OrderByDescending(a => a.LastActivity)
             .FirstOrDefaultAsync(cancellationToken);
     }

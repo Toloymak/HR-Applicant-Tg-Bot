@@ -11,7 +11,9 @@ public class CandidateResetCommandHandler : IMenuBotCommand
     public static string Command => "reset";
     public static string Description => "Reset the bot";
     
-    public CandidateResetCommandHandler(ITelegramBotClient botClient, WelcomeCommunicationService welcomeCommunicationService)
+    public CandidateResetCommandHandler(
+        ITelegramBotClient botClient,
+        WelcomeCommunicationService welcomeCommunicationService)
     {
         _botClient = botClient;
         _welcomeCommunicationService = welcomeCommunicationService;

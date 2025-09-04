@@ -1,10 +1,7 @@
 namespace CandidateTgBot.Types.Callbacks;
 
 public record VacancyInfoCallback 
-    : ICallback,
-        // IParseableCommand<VacancyInfoCallback>,
-        // ITgCallbackConvertable,
-        IHasConstantCommandName
+    : ICallback, IHasConstantCommandName
         
 {
     public static string CommandName => "vi";
@@ -23,4 +20,7 @@ public record VacancyInfoCallback
         var vacancyId = GuidShort.FromBase64Url(data);
         return new VacancyInfoCallback { VacancyId = vacancyId };
     }
+
+    public string GetDebugString()
+    => "VacancyId:" + VacancyId;
 }

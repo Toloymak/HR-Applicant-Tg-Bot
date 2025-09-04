@@ -271,17 +271,15 @@ public class AnswerService
                       "You don't have an active application to answer questions for.\n\n" +
                       "💡 *Ready to start a new application?*";
 
-        var keyboard = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup(new[]
-        {
-            new[]
-            {
+        var keyboard = new Telegram.Bot.Types.ReplyMarkups.InlineKeyboardMarkup([
+            [
                 Telegram.Bot.Types.ReplyMarkups.InlineKeyboardButton.WithCallbackData(
                     text: "🚀 Start New Application",
-                    callbackData: new CandidateTgBot.Types.Callbacks.StartNewApplicationCallback()
+                    callbackData: new Types.Callbacks.StartNewApplicationCallback()
                         .ToTgString().ToString()
                 )
-            }
-        });
+            ]
+        ]);
 
         await _tgClient.SendMessage(
             chatId: chatId,

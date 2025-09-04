@@ -21,4 +21,7 @@ public record ConfirmRevokeApplicationCallback : ICallback, IHasConstantCommandN
             return null;
         }
     }
+
+    public string GetDebugString()
+    => "ConfirmRevokeApplicationCallback";
 }

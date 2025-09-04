@@ -1,4 +1,5 @@
 using CandidateTgBot.Services;
+using CandidateTgBot.Services.CommunicationServices;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 
@@ -6,25 +7,19 @@ namespace CandidateTgBot.Handlers.Commands;
 
 public class StatusCommandHandler : IMenuBotCommand
 {
-    private readonly ITelegramBotClient _botClient;
-    private readonly BotMessageService _botMessageService;
-    private readonly ILogger<StatusCommandHandler> _logger;
-    
-    public static string Command => "status";
-    public static string Description => "Show your application status";
-    
+    private readonly StatusCommunicationService _statusService;
+
     public StatusCommandHandler(
-        ITelegramBotClient botClient, 
-        BotMessageService botMessageService,
-        ILogger<StatusCommandHandler> logger)
+        StatusCommunicationService statusService)
     {
-        _botClient = botClient;
-        _botMessageService = botMessageService;
-        _logger = logger;
+        _statusService = statusService;
     }
-    
+
     public async Task HandleCommand(long chatId, CancellationToken ct)
     {
-        await _botMessageService.SendStatusMessageAsync(chatId, null, ct);
+        await _statusService.SendStatusInfo(chatId, null, ct);
     }
+
+    public static string Command => "status";
+    public static string Description => "Show your application status";
 }

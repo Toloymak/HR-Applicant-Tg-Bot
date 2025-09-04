@@ -1,5 +1,6 @@
 using CandidateTgBot.Services;
 using CandidateTgBot.Services.CommunicationServices;
+using CandidateTgBot.Services.DataProviders;
 using CandidateTgBot.Types.Callbacks;
 using DataLayer.Contexts;
 using Microsoft.EntityFrameworkCore;
@@ -13,23 +14,27 @@ namespace CandidateTgBot.Handlers.CallbackHandlers;
 public class StartNewApplicationCallbackHandler : ICallbackHandler<StartNewApplicationCallback>
 {
     private readonly ITelegramBotClient _tg;
-    private readonly BotUserService _botUserService;
     private readonly WelcomeCommunicationService _welcomeService;
     private readonly HrBotContext _context;
     private readonly ILogger<StartNewApplicationCallbackHandler> _logger;
+    private readonly IProvideUserFromCallback _userProvider;
+    private readonly ISendUnableToIdentifyMessage _sendUnableToIdentifyMessage;
 
     public StartNewApplicationCallbackHandler(
         ITelegramBotClient tg,
         BotUserService botUserService,
         WelcomeCommunicationService welcomeService,
         HrBotContext context,
-        ILogger<StartNewApplicationCallbackHandler> logger)
+        ILogger<StartNewApplicationCallbackHandler> logger,
+        IProvideUserFromCallback userProvider,
+        ISendUnableToIdentifyMessage sendUnableToIdentifyMessage)
     {
         _tg = tg;
-        _botUserService = botUserService;
         _welcomeService = welcomeService;
         _context = context;
         _logger = logger;
+        _userProvider = userProvider;
+        _sendUnableToIdentifyMessage = sendUnableToIdentifyMessage;
     }
 
     public async Task Handle(
@@ -38,19 +43,12 @@ public class StartNewApplicationCallbackHandler : ICallbackHandler<StartNewAppli
         CallbackQuery query,
         CancellationToken ct)
     {
-        try
+        var botUserId = await _userProvider.GetBotUserId(query, ct);
+        if (botUserId is null)
         {
-            // Get bot user ID from the callback query
-            var botUserId = await GetBotUserIdFromCallback(query, ct);
-            if (botUserId == null)
-            {
-                await _tg.SendMessage(
-                    chatId: chatId,
-                    text: "❌ Unable to identify your user account. Please try again.",
-                    cancellationToken: ct
-                );
-                return;
-            }
+            await _sendUnableToIdentifyMessage.Send(chatId, ct);
+            return;
+        }
 
             // Check if user has active applications and update their status
             var activeApplications = await _context.UserApplications
@@ -63,7 +61,7 @@ public class StartNewApplicationCallbackHandler : ICallbackHandler<StartNewAppli
                 // Update all active applications to CompetedByUserAndStartedNew
                 foreach (var application in activeApplications)
                 {
-                    application.State = ApplicationStatus.CompetedByUserAndStartedNew;
+                    application.State = ApplicationStatus.Canceled;
                     application.LastActivity = DateTime.UtcNow;
                 }
                 await _context.SaveChangesAsync(ct);
@@ -93,32 +91,6 @@ public class StartNewApplicationCallbackHandler : ICallbackHandler<StartNewAppli
             _logger.LogInformation(
                 "User {BotUserId} started new application via button in chat {ChatId}",
                 botUserId, chatId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error handling StartNewApplicationCallback");
-            
-            await _tg.SendMessage(
-                chatId: chatId,
-                text: "❌ An error occurred while starting your application. Please try again.",
-                cancellationToken: ct
-            );
-        }
-    }
 
-    private async Task<Guid?> GetBotUserIdFromCallback(CallbackQuery query, CancellationToken ct)
-    {
-        if (query.From == null) return null;
-        
-        try
-        {
-            var botUser = await _botUserService.CreateOrUpdateUserAsync(query.From, ct);
-            return botUser?.Id;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting bot user for Telegram user {TgId}", query.From.Id);
-            return null;
-        }
     }
 }

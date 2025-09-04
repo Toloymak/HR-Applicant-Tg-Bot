@@ -19,6 +19,8 @@ public class UserApplicationDal
     public QuestionDal? LastQuestion { get; set; }
 
     public ApplicationStatus State { get; set; }
+    
+    public long ChatId { get; set; }
 
     /// <summary>
     /// When the user started filling out this application

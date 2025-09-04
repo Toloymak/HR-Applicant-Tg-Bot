@@ -10,4 +10,6 @@ public record UpdateVacancyListCallback
     public TgCallbackData ToTgString() => new (CommandName);
 
     public static UpdateVacancyListCallback Parse(string? _) => new();
+    public string GetDebugString()
+    => "UpdateVacancyListCallback";
 }

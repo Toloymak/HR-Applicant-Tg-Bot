@@ -8,4 +8,6 @@ public record StartNewApplicationCallback : ICallback, IHasConstantCommandName
     public TgCallbackData ToTgString() => new(CommandName);
     
     public static StartNewApplicationCallback? Parse(string? _) => new();
+    public string GetDebugString()
+    => "StartNewApplicationCallback";
 }

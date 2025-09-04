@@ -1,8 +1,10 @@
 using CandidateTgBot.Types.Callbacks;
+using JetBrains.Annotations;
 using Telegram.Bot.Types;
 
 namespace CandidateTgBot.Handlers.CallbackHandlers;
 
+[UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
 public interface ICallbackHandler<in T> 
     : ICallbackHandler
     where T : ICallback

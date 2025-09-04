@@ -21,4 +21,7 @@ public record SendOneMoreApplicationCallback : ICallback, IHasConstantCommandNam
             return null;
         }
     }
+
+    public string GetDebugString()
+    => "CompletedApplicationId:" + CompletedApplicationId;
 }

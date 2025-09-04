@@ -52,12 +52,12 @@ public class CancelApplicationButtonService
             // If there's no existing keyboard, create a new one with just the cancel button
             if (existingKeyboard == null)
             {
-                return new InlineKeyboardMarkup(new[] { new[] { cancelButton } });
+                return new InlineKeyboardMarkup([[cancelButton]]);
             }
 
             // Add the cancel button to the existing keyboard
             var existingButtons = existingKeyboard.InlineKeyboard.ToList();
-            existingButtons.Add(new[] { cancelButton });
+            existingButtons.Add([cancelButton]);
             return new InlineKeyboardMarkup(existingButtons);
         }
         catch (Exception ex)
@@ -95,7 +95,7 @@ public class CancelApplicationButtonService
                 }.ToTgString().ToString()
             );
 
-            return new InlineKeyboardMarkup(new[] { new[] { cancelButton } });
+            return new InlineKeyboardMarkup([[cancelButton]]);
         }
         catch (Exception ex)
         {

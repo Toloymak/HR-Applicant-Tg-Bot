@@ -95,7 +95,7 @@ public class CurrentQuestionService
         CancellationToken cancellationToken)
     {
         var vacancy = application.Vacancy!;
-        var questions = vacancy.Questions?.OrderBy(q => q.OrderNumber).ToList() ?? new List<QuestionDal>();
+        var questions = vacancy.Questions?.OrderBy(q => q.OrderNumber).ToList() ?? [];
 
         if (!questions.Any())
         {
@@ -110,7 +110,7 @@ public class CurrentQuestionService
         }
 
         // Get answered questions
-        var answeredQuestions = application.Answers?.Select(a => a.QuestionId).ToHashSet() ?? new HashSet<Guid>();
+        var answeredQuestions = application.Answers?.Select(a => a.QuestionId).ToHashSet() ?? [];
 
         // Find the next unanswered question
         var nextQuestion = questions.FirstOrDefault(q => !answeredQuestions.Contains(q.Id));
@@ -162,18 +162,17 @@ public class CurrentQuestionService
         {
             case YesNoAnswerTypeDal.TypeName:
             case "yesno_required":
-                buttons.Add(new List<InlineKeyboardButton>
-                {
+                buttons.Add([
                     InlineKeyboardButton.WithCallbackData("✅ Yes", $"answer_yes|{GuidShort.ToBase64Url(question.Id)}"),
                     InlineKeyboardButton.WithCallbackData("❌ No", $"answer_no|{GuidShort.ToBase64Url(question.Id)}")
-                });
+                ]);
                 break;
 
             case TextAnswerTypeDal.TypeName:
-                buttons.Add(new List<InlineKeyboardButton>
-                {
-                    InlineKeyboardButton.WithCallbackData("✏️ Provide Text Answer", $"answer_text|{GuidShort.ToBase64Url(question.Id)}")
-                });
+                buttons.Add([
+                    InlineKeyboardButton.WithCallbackData("✏️ Provide Text Answer",
+                        $"answer_text|{GuidShort.ToBase64Url(question.Id)}")
+                ]);
                 break;
         }
 
@@ -192,7 +191,7 @@ public class CurrentQuestionService
     /// </summary>
     private int GetQuestionNumber(UserApplicationDal application, QuestionDal currentQuestion)
     {
-        var questions = application.Vacancy!.Questions?.OrderBy(q => q.OrderNumber).ToList() ?? new List<QuestionDal>();
+        var questions = application.Vacancy!.Questions?.OrderBy(q => q.OrderNumber).ToList() ?? [];
         var index = questions.FindIndex(q => q.Id == currentQuestion.Id);
         return index + 1;
     }
@@ -206,10 +205,8 @@ public class CurrentQuestionService
         Guid botUserId,
         CancellationToken cancellationToken)
     {
-        var keyboard = new InlineKeyboardMarkup(new[]
-        {
-            new[]
-            {
+        var keyboard = new InlineKeyboardMarkup([
+            [
                 InlineKeyboardButton.WithCallbackData(
                     text: "📝 Send One More Application",
                     callbackData: new SendOneMoreApplicationCallback
@@ -217,8 +214,8 @@ public class CurrentQuestionService
                         CompletedApplicationId = application.Id
                     }.ToTgString().ToString()
                 )
-            }
-        });
+            ]
+        ]);
 
         await _tgClient.SendMessage(
             chatId: chatId,

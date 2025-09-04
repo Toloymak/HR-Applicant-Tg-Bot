@@ -8,4 +8,6 @@ public record ShowStatusCallback : ICallback, IHasConstantCommandName
     public TgCallbackData ToTgString() => new(CommandName);
     
     public static ShowStatusCallback? Parse(string? _) => new();
+    public string GetDebugString()
+    => "ShowStatusCallback";
 }

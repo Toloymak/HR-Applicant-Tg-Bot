@@ -21,4 +21,7 @@ public record RevokeSpecificApplicationCallback : ICallback, IHasConstantCommand
             return null;
         }
     }
+
+    public string GetDebugString()
+    => "RevokeSpecificApplicationCallback";
 }

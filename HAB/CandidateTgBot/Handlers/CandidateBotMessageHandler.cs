@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using CandidateTgBot.Handlers.Commands;
 using CandidateTgBot.Helpers;
 using CandidateTgBot.Services;
+using CandidateTgBot.Services.CommunicationServices;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -17,6 +18,7 @@ public class CandidateBotMessageHandler
     private readonly ITelegramBotClient _tgClient;
     private readonly CancelApplicationButtonService _cancelButtonService;
     private readonly BotMessageService _botMessageService;
+    private readonly StatusCommunicationService _statusService;
     private readonly AnswerService _answerService;
 
 
@@ -29,7 +31,8 @@ public class CandidateBotMessageHandler
         ITelegramBotClient tgClient,
         CancelApplicationButtonService cancelButtonService,
         BotMessageService botMessageService,
-        AnswerService answerService)
+        AnswerService answerService,
+        StatusCommunicationService statusService)
     {
         _logger = logger;
         _botCommandHandler = botCommandHandler;
@@ -39,6 +42,7 @@ public class CandidateBotMessageHandler
         _cancelButtonService = cancelButtonService;
         _botMessageService = botMessageService;
         _answerService = answerService;
+        _statusService = statusService;
     }
 
     public async Task HandleUpdateAsync(
@@ -138,19 +142,19 @@ CallbackQuery callbackQuery)
             switch (normalizedCommand)
             {
                 case "/start":
-                    await _botMessageService.SendStartMessageAsync(chatId, botUserId, token);
+                    await _botMessageService.SendStartMessage(chatId, botUserId, token);
                     return;
                 case "/help":
-                    await _botMessageService.SendHelpMessageAsync(chatId, botUserId, token);
+                    await _botMessageService.SendHelpMessage(chatId, botUserId, token);
                     return;
                 case "/reset":
-                    await _botMessageService.SendResetMessageAsync(chatId, botUserId, token);
+                    await _botMessageService.SendResetMessage(chatId, botUserId, token);
                     return;
                 case "/continue":
-                    await _botMessageService.SendContinueMessageAsync(chatId, botUserId, token);
+                    await _botMessageService.SendContinueMessage(chatId, botUserId, token);
                     return;
                 case "/status":
-                    await _botMessageService.SendStatusMessageAsync(chatId, botUserId, token);
+                    await _statusService.SendStatusInfo(chatId, botUserId, token);
                     return;
             }
 

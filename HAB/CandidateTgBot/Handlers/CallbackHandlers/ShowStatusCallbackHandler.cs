@@ -1,4 +1,6 @@
 using CandidateTgBot.Services;
+using CandidateTgBot.Services.CommunicationServices;
+using CandidateTgBot.Services.DataProviders;
 using CandidateTgBot.Types.Callbacks;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
@@ -9,20 +11,24 @@ namespace CandidateTgBot.Handlers.CallbackHandlers;
 public class ShowStatusCallbackHandler : ICallbackHandler<ShowStatusCallback>
 {
     private readonly ITelegramBotClient _tg;
-    private readonly BotUserService _botUserService;
-    private readonly ApplicationStatusService _statusService;
     private readonly ILogger<ShowStatusCallbackHandler> _logger;
+    private readonly IProvideUserFromCallback _userProvider;
+    private readonly ISendUnableToIdentifyMessage _sendUnableToIdentifyMessage;
+    private readonly StatusCommunicationService _statusCommunicationService;
 
     public ShowStatusCallbackHandler(
         ITelegramBotClient tg,
         BotUserService botUserService,
-        ApplicationStatusService statusService,
-        ILogger<ShowStatusCallbackHandler> logger)
+        ILogger<ShowStatusCallbackHandler> logger,
+        IProvideUserFromCallback userProvider,
+        ISendUnableToIdentifyMessage sendUnableToIdentifyMessage,
+        StatusCommunicationService statusCommunicationService)
     {
         _tg = tg;
-        _botUserService = botUserService;
-        _statusService = statusService;
         _logger = logger;
+        _userProvider = userProvider;
+        _sendUnableToIdentifyMessage = sendUnableToIdentifyMessage;
+        _statusCommunicationService = statusCommunicationService;
     }
 
     public async Task Handle(
@@ -31,22 +37,14 @@ public class ShowStatusCallbackHandler : ICallbackHandler<ShowStatusCallback>
         CallbackQuery query,
         CancellationToken ct)
     {
-        try
+        var botUserId = await _userProvider.GetBotUserId(query, ct);
+        if (botUserId is null)
         {
-            // Get bot user ID from the callback query
-            var botUserId = await GetBotUserIdFromCallback(query, ct);
-            if (botUserId == null)
-            {
-                await _tg.SendMessage(
-                    chatId: chatId,
-                    text: "❌ Unable to identify your user account. Please try again.",
-                    cancellationToken: ct
-                );
-                return;
-            }
+            await _sendUnableToIdentifyMessage.Send(chatId, ct);
+            return;
+        }
 
-            // Show application status
-            await _statusService.ShowApplicationStatusAsync(chatId, botUserId.Value, ct);
+        await _statusCommunicationService.SendStatusInfo(chatId, botUserId.Value, ct);
 
             await _tg.AnswerCallbackQuery(
                 callbackQueryId: query.Id,
@@ -58,32 +56,5 @@ public class ShowStatusCallbackHandler : ICallbackHandler<ShowStatusCallback>
             _logger.LogInformation(
                 "User {BotUserId} requested application status via button in chat {ChatId}",
                 botUserId, chatId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error handling ShowStatusCallback");
-            
-            await _tg.SendMessage(
-                chatId: chatId,
-                text: "❌ An error occurred while loading your status. Please try again.",
-                cancellationToken: ct
-            );
-        }
-    }
-
-    private async Task<Guid?> GetBotUserIdFromCallback(CallbackQuery query, CancellationToken ct)
-    {
-        if (query.From == null) return null;
-        
-        try
-        {
-            var botUser = await _botUserService.CreateOrUpdateUserAsync(query.From, ct);
-            return botUser?.Id;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting bot user for Telegram user {TgId}", query.From.Id);
-            return null;
-        }
     }
 }

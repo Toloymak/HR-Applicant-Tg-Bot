@@ -286,6 +286,8 @@ Key patterns:
 8. **Design user-friendly error recovery** - Include actionable buttons in error messages
 9. **Implement confirmation flows** for destructive actions (cancellation, revocation)
 10. **Support polymorphic data storage** for different answer types using EF Core Value Converters
+11. **Use 'ct' parameter name** for cancellation tokens in method parameters (e.g., `CancellationToken ct = default`)
+12. **Use IReadOnlyCollection instead of List** for public methods where implementation details don't matter (e.g., `IReadOnlyCollection<UserApplicationDal>` instead of `List<UserApplicationDal>`)
 
 ## Documentation Priority Order
 

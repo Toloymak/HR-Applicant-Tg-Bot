@@ -8,5 +8,7 @@ public record ShowOtherVacanciesCallback : ICallback, IHasConstantCommandName
     public TgCallbackData ToTgString() => new(CommandName);
 
     public static ShowOtherVacanciesCallback Parse(string? _) => new();
+    public string GetDebugString()
+    => "ShowOtherVacanciesCallback";
 }
 

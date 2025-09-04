@@ -22,8 +22,7 @@ public class ButtonCallbackParser
         { CancelApplicationCallback.CommandName, CancelApplicationCallback.Parse },
         { ConfirmCancelApplicationCallback.CommandName, ConfirmCancelApplicationCallback.Parse },
         { ConfirmResetCallback.CommandName, ConfirmResetCallback.Parse },
-        { KeepApplicationCallback.CommandName, KeepApplicationCallback.Parse },
-        { KeepProgressCallback.CommandName, KeepProgressCallback.Parse },
+        { CancelRevokeApplicationCallback.CommandName, CancelRevokeApplicationCallback.Parse },
         { AnswerYesCallback.CommandName, AnswerYesCallback.Parse },
         { AnswerNoCallback.CommandName, AnswerNoCallback.Parse },
         { AnswerTextCallback.CommandName, AnswerTextCallback.Parse },
@@ -33,7 +32,7 @@ public class ButtonCallbackParser
         { RevokeApplicationListCallback.CommandName, RevokeApplicationListCallback.Parse },
         { RevokeSpecificApplicationCallback.CommandName, RevokeSpecificApplicationCallback.Parse },
         { ConfirmRevokeApplicationCallback.CommandName, ConfirmRevokeApplicationCallback.Parse },
-        { CancelRevokeCallback.CommandName, CancelRevokeCallback.Parse }
+        { ShowRevokeListCallback.CommandName, ShowRevokeListCallback.Parse }
     };
 
     public ButtonCallbackParser(ILogger<ButtonCallbackParser> logger)

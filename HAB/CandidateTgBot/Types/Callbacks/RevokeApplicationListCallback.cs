@@ -8,4 +8,6 @@ public record RevokeApplicationListCallback : ICallback, IHasConstantCommandName
     public TgCallbackData ToTgString() => new(CommandName);
     
     public static RevokeApplicationListCallback? Parse(string? _) => new();
+    public string GetDebugString()
+    => "RevokeApplicationListCallback";
 }

@@ -12,4 +12,7 @@ public record ConfirmResetCallback : ICallback, IHasConstantCommandName
     {
         return new ConfirmResetCallback();
     }
+
+    public string GetDebugString()
+    => "ConfirmResetCallback";
 }

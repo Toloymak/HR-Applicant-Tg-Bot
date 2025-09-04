@@ -14,4 +14,7 @@ public record ConfirmCancelApplicationCallback : ICallback, IHasConstantCommandN
         if (string.IsNullOrEmpty(data)) return null;
         return new ConfirmCancelApplicationCallback { ApplicationId = GuidShort.FromBase64Url(data) };
     }
+
+    public string GetDebugString()
+    => "ApplicationId:" + ApplicationId;
 }

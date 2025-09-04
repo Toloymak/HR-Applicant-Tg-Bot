@@ -14,5 +14,8 @@ public record ApplyForVacancyCallback : ICallback, IHasConstantCommandName
         if (string.IsNullOrEmpty(data)) return null;
         return new ApplyForVacancyCallback { VacancyId = GuidShort.FromBase64Url(data) };
     }
+
+    public string GetDebugString()
+    => "VacancyId:" + VacancyId;
 }
 

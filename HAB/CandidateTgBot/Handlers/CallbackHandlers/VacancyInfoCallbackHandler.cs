@@ -31,10 +31,8 @@ public class VacancyInfoCallbackHandler : ICallbackHandler<VacancyInfoCallback>
         }
 
         var text = $"{info.Title}\n\n{info.Description}";
-        var keyboard = new InlineKeyboardMarkup(new[]
-        {
-            new []
-            {
+        var keyboard = new InlineKeyboardMarkup([
+            [
                 InlineKeyboardButton.WithCallbackData(
                     text: "Apply",
                     callbackData: new ApplyForVacancyCallback { VacancyId = command.VacancyId }
@@ -45,8 +43,8 @@ public class VacancyInfoCallbackHandler : ICallbackHandler<VacancyInfoCallback>
                     callbackData: new ShowOtherVacanciesCallback()
                         .ToTgString().ToString()
                 )
-            }
-        });
+            ]
+        ]);
 
         await _tg.SendMessage(chatId, text, replyMarkup: keyboard, cancellationToken: ct);
     }

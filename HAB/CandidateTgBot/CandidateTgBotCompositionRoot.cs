@@ -12,43 +12,31 @@ namespace CandidateTgBot;
 
 public static class CandidateTgBotCompositionRoot
 {
-    public static void Register(IServiceCollection service)
+    public static void Register(IServiceCollection services)
     {
-        service.RegisterMenuCommands();
-        service.AddTransient<CandidateBotMessageHandler>();
-        service.AddTransient<CandidateBotErrorHandler>();
-        service.AddTransient<BotCommandHandler>();
-        service.AddTransient<BotUserService>();
-        service.AddTransient<ApplicationService>();
-        service.AddTransient<CancelApplicationButtonService>();
-        service.AddTransient<CurrentQuestionService>();
-        service.AddTransient<AnswerService>();
-        service.AddTransient<ApplicationStatusService>();
-        service.AddTransient<BotMessageService>();
-        service.AddTransient<WelcomeCommunicationService>();
-        service.AddTransient<VacancyListCommunicationService>();
-        service.AddTransient<CallbackMessageHandler>();
-        service.AddTransient<ButtonCallbackParser>();
+        services.RegisterMenuCommands();
+        services.AddTransient<CandidateBotMessageHandler>();
+        services.AddTransient<CandidateBotErrorHandler>();
+        services.AddTransient<BotCommandHandler>();
+        services.AddTransient<BotUserService>();
+        services.AddTransient<ApplicationService>();
+        services.AddTransient<CancelApplicationButtonService>();
+        services.AddTransient<CurrentQuestionService>();
+        services.AddTransient<AnswerService>();
+        services.AddTransient<BotMessageService>();
+        services.AddTransient<WelcomeCommunicationService>();
+        services.AddTransient<VacancyListCommunicationService>();
+        services.AddTransient<CallbackMessageHandler>();
+        services.AddTransient<ButtonCallbackParser>();
+        services.AddTransient<ISendUnableToIdentifyMessage, ErrorCommunicationService>();
 
         // Callback handlers
-        service.AddTransient<ICallbackHandler<VacancyInfoCallback>, VacancyInfoCallbackHandler>();
-        service.AddTransient<ICallbackHandler<UpdateVacancyListCallback>, UpdateVacancyListCallbackHandler>();
-        service.AddTransient<ICallbackHandler<ShowOtherVacanciesCallback>, ShowOtherVacanciesCallbackHandler>();
-        service.AddTransient<ICallbackHandler<ApplyForVacancyCallback>, ApplyForVacancyCallbackHandler>();
-        service.AddTransient<ICallbackHandler<CancelApplicationCallback>, CancelApplicationCallbackHandler>();
-        service.AddTransient<ICallbackHandler<ConfirmCancelApplicationCallback>, ConfirmCancelApplicationCallbackHandler>();
-        service.AddTransient<ICallbackHandler<ConfirmResetCallback>, ConfirmResetCallbackHandler>();
-        service.AddTransient<ICallbackHandler<KeepApplicationCallback>, KeepApplicationCallbackHandler>();
-        service.AddTransient<ICallbackHandler<KeepProgressCallback>, KeepProgressCallbackHandler>();
-        service.AddTransient<ICallbackHandler<AnswerYesCallback>, AnswerYesCallbackHandler>();
-        service.AddTransient<ICallbackHandler<AnswerNoCallback>, AnswerNoCallbackHandler>();
-        service.AddTransient<ICallbackHandler<AnswerTextCallback>, AnswerTextCallbackHandler>();
-        service.AddTransient<ICallbackHandler<SendOneMoreApplicationCallback>, SendOneMoreApplicationCallbackHandler>();
-        service.AddTransient<ICallbackHandler<ShowStatusCallback>, ShowStatusCallbackHandler>();
-        service.AddTransient<ICallbackHandler<StartNewApplicationCallback>, StartNewApplicationCallbackHandler>();
-        service.AddTransient<ICallbackHandler<RevokeApplicationListCallback>, RevokeApplicationListCallbackHandler>();
-        service.AddTransient<ICallbackHandler<RevokeSpecificApplicationCallback>, RevokeSpecificApplicationCallbackHandler>();
-        service.AddTransient<ICallbackHandler<ConfirmRevokeApplicationCallback>, ConfirmRevokeApplicationCallbackHandler>();
-        service.AddTransient<ICallbackHandler<CancelRevokeCallback>, CancelRevokeCallbackHandler>();
+        services.Scan(scan => scan
+            .FromAssembliesOf(typeof(ICallbackHandler<>))
+            .AddClasses(c => c.AssignableTo(typeof(ICallbackHandler<>)))
+            .AsImplementedInterfaces()
+            .WithTransientLifetime());
+
+        services.Decorate(typeof(ICallbackHandler<>), typeof(CallbackExceptionHandlerDecorator<>));
     }
 }

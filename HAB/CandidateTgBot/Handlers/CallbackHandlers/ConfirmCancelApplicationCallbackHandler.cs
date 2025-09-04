@@ -1,7 +1,9 @@
 using CandidateTgBot.Services;
 using CandidateTgBot.Services.CommunicationServices;
+using CandidateTgBot.Services.DataProviders;
 using CandidateTgBot.Types.Callbacks;
 using DataLayer.Contexts;
+using DataLayer.Dals;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shared.Models;
@@ -15,9 +17,10 @@ public class ConfirmCancelApplicationCallbackHandler : ICallbackHandler<ConfirmC
     private readonly ITelegramBotClient _tg;
     private readonly HrBotContext _context;
     private readonly ApplicationService _applicationService;
-    private readonly BotUserService _botUserService;
     private readonly VacancyListCommunicationService _vacancyListService;
     private readonly ILogger<ConfirmCancelApplicationCallbackHandler> _logger;
+    private readonly ISendUnableToIdentifyMessage _sendUnableToIdentifyMessage;
+    private readonly IProvideUserFromCallback _userProvider;
 
     public ConfirmCancelApplicationCallbackHandler(
         ITelegramBotClient tg,
@@ -25,14 +28,17 @@ public class ConfirmCancelApplicationCallbackHandler : ICallbackHandler<ConfirmC
         ApplicationService applicationService,
         BotUserService botUserService,
         VacancyListCommunicationService vacancyListService,
-        ILogger<ConfirmCancelApplicationCallbackHandler> logger)
+        ILogger<ConfirmCancelApplicationCallbackHandler> logger,
+        ISendUnableToIdentifyMessage sendUnableToIdentifyMessage,
+        IProvideUserFromCallback userProvider)
     {
         _tg = tg;
         _context = context;
         _applicationService = applicationService;
-        _botUserService = botUserService;
         _vacancyListService = vacancyListService;
         _logger = logger;
+        _sendUnableToIdentifyMessage = sendUnableToIdentifyMessage;
+        _userProvider = userProvider;
     }
 
     public async Task Handle(
@@ -41,84 +47,53 @@ public class ConfirmCancelApplicationCallbackHandler : ICallbackHandler<ConfirmC
         CallbackQuery query,
         CancellationToken ct)
     {
-        try
-        {
-            // Ensure we have the user information
-            if (query.From == null)
+            var botUser = await _userProvider.GetBotUser(query, ct);
+            if (botUser is null)
             {
-                await _tg.SendMessage(
-                    chatId: chatId,
-                    text: "❌ Unable to identify user. Please try again.",
-                    cancellationToken: ct
-                );
+                await _sendUnableToIdentifyMessage.Send(chatId, ct);
                 return;
             }
 
-            // Get the bot user
-            var botUser = await _botUserService.CreateOrUpdateUserAsync(query.From, ct);
-
-            // Get the application with vacancy information
             var application = await _context.UserApplications
                 .Include(a => a.Vacancy)
+                .Where(x => x.State == ApplicationStatus.InProgress)
                 .FirstOrDefaultAsync(a => a.Id == command.ApplicationId && a.BotUserId == botUser.Id, ct);
 
             if (application == null)
             {
                 await _tg.SendMessage(
                     chatId: chatId,
-                    text: "❌ Application not found or you don't have permission to cancel it.",
+                    text: "❌ Application not found or you don't have permission to cancel it",
                     cancellationToken: ct
                 );
                 return;
             }
 
-            // Check if application is already canceled
-            if (application.State == ApplicationStatus.CanceledByUser)
-            {
-                await _tg.SendMessage(
-                    chatId: chatId,
-                    text: "ℹ️ This application has already been canceled.",
-                    cancellationToken: ct
-                );
-                return;
-            }
+            await _applicationService.UpdateApplicationStatus(
+                command.ApplicationId, ApplicationStatus.Canceled, ct);
 
-            // Cancel the application
-            await _applicationService.UpdateApplicationStatusAsync(
-                command.ApplicationId,
-                ApplicationStatus.CanceledByUser,
-                ct
-            );
-
-            // Send confirmation message
-            await _tg.SendMessage(
-                chatId: chatId,
-                text: $"✅ **Application Canceled Successfully**\n\n" +
-                      $"Your application for **{application.Vacancy?.Title}** has been canceled.\n\n" +
-                      $"Here are the available positions:",
-                parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
-                cancellationToken: ct
-            );
+            await SendApplicationCancellationConfirmation(chatId, ct, application);
 
             _logger.LogInformation(
                 "User {TgId} ({Username}) successfully canceled application {ApplicationId} for vacancy '{VacancyTitle}'",
                 botUser.TgId, botUser.TgName, application.Id, application.Vacancy?.Title);
 
-            // Show vacancy list after successful cancellation
             await _vacancyListService.SendVacancyListAsync(chatId, botUser.Id, ct);
+        
+    }
 
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex,
-                "Error confirming cancel application for user {ChatId}, application {ApplicationId}",
-                chatId, command.ApplicationId);
-
-            await _tg.SendMessage(
-                chatId: chatId,
-                text: "❌ An error occurred while canceling your application. Please try again later.",
-                cancellationToken: ct
-            );
-        }
+    private async Task SendApplicationCancellationConfirmation(
+        long chatId,
+        CancellationToken ct,
+        UserApplicationDal application)
+    {
+        await _tg.SendMessage(
+            chatId: chatId,
+            text: $"✅ **Application Canceled Successfully**\n\n" +
+                  $"Your application for **{application.Vacancy?.Title}** has been canceled.\n\n" +
+                  $"Here are the available positions:",
+            parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+            cancellationToken: ct
+        );
     }
 }

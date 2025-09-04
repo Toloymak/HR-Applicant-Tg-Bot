@@ -16,7 +16,6 @@ public class BotMessageService
     private readonly CancelApplicationButtonService _cancelButtonService;
     private readonly ApplicationService _applicationService;
     private readonly CurrentQuestionService _questionService;
-    private readonly ApplicationStatusService _statusService;
     private readonly ILogger<BotMessageService> _logger;
 
     public BotMessageService(
@@ -25,22 +24,21 @@ public class BotMessageService
         CancelApplicationButtonService cancelButtonService,
         ApplicationService applicationService,
         CurrentQuestionService questionService,
-        ApplicationStatusService statusService,
-        ILogger<BotMessageService> logger)
+        ILogger<BotMessageService> logger,
+        ISendUnableToIdentifyMessage sendUnableToIdentifyMessage)
     {
         _tgClient = tgClient;
         _welcomeService = welcomeService;
         _cancelButtonService = cancelButtonService;
         _applicationService = applicationService;
         _questionService = questionService;
-        _statusService = statusService;
         _logger = logger;
     }
 
     /// <summary>
     /// Sends a start message with user context
     /// </summary>
-    public async Task SendStartMessageAsync(
+    public async Task SendStartMessage(
         long chatId, 
         Guid? botUserId, 
         CancellationToken cancellationToken)
@@ -81,7 +79,7 @@ public class BotMessageService
     /// <summary>
     /// Sends a help message with user context (no cancel button)
     /// </summary>
-    public async Task SendHelpMessageAsync(
+    public async Task SendHelpMessage(
         long chatId, 
         Guid? botUserId, 
         CancellationToken cancellationToken)
@@ -105,7 +103,7 @@ public class BotMessageService
     /// <summary>
     /// Sends a reset confirmation message with user context
     /// </summary>
-    public async Task SendResetMessageAsync(
+    public async Task SendResetMessage(
         long chatId, 
         Guid? botUserId, 
         CancellationToken cancellationToken)
@@ -119,23 +117,17 @@ public class BotMessageService
             if (hasActiveApplications)
             {
                 // Show confirmation dialog for reset
-                var keyboard = new InlineKeyboardMarkup(new[]
-                {
-                    new[]
-                    {
+                var keyboard = new InlineKeyboardMarkup([
+                    [
                         InlineKeyboardButton.WithCallbackData(
                             text: "✅ Yes, Reset Everything",
                             callbackData: new ConfirmResetCallback().ToTgString().ToString()
                         )
-                    },
-                    new[]
-                    {
-                        InlineKeyboardButton.WithCallbackData(
-                            text: "❌ No, Keep Current Progress",
-                            callbackData: new KeepProgressCallback().ToTgString().ToString()
-                        )
-                    }
-                });
+                    ],
+                    [
+                        TgButtonProvider.Applications.Status,
+                    ]
+                ]);
 
                 await _tgClient.SendMessage(
                     chatId: chatId,
@@ -163,7 +155,7 @@ public class BotMessageService
     /// <summary>
     /// Sends a continue message - only works if user has active applications
     /// </summary>
-    public async Task SendContinueMessageAsync(
+    public async Task SendContinueMessage(
         long chatId, 
         Guid? botUserId, 
         CancellationToken cancellationToken)
@@ -219,29 +211,5 @@ public class BotMessageService
         _logger.LogInformation(
             "User tried to continue but has no active applications in chat {ChatId}",
             chatId);
-    }
-
-    /// <summary>
-    /// Sends application status information
-    /// </summary>
-    public async Task SendStatusMessageAsync(
-        long chatId,
-        Guid? botUserId,
-        CancellationToken cancellationToken)
-    {
-        if (botUserId.HasValue)
-        {
-            await _statusService.ShowApplicationStatusAsync(chatId, botUserId.Value, cancellationToken);
-        }
-        else
-        {
-            await _tgClient.SendMessage(
-                chatId: chatId,
-                text: "❌ **Unable to Identify User**\n\n" +
-                      "Please try again or contact support if the issue persists.",
-                parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
-                cancellationToken: cancellationToken
-            );
-        }
     }
 }

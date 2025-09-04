@@ -21,6 +21,8 @@ public record AnswerYesCallback : ICallback, IHasConstantCommandName
             return null;
         }
     }
+
+    public string GetDebugString() => "QuestionId:" + QuestionId;
 }
 
 public record AnswerNoCallback : ICallback, IHasConstantCommandName
@@ -44,6 +46,9 @@ public record AnswerNoCallback : ICallback, IHasConstantCommandName
             return null;
         }
     }
+
+    public string GetDebugString()
+        => "QuestionId:" + QuestionId;
 }
 
 public record AnswerTextCallback : ICallback, IHasConstantCommandName
@@ -67,4 +72,7 @@ public record AnswerTextCallback : ICallback, IHasConstantCommandName
             return null;
         }
     }
+
+    public string GetDebugString()
+        => "QuestionId:" + QuestionId;
 }

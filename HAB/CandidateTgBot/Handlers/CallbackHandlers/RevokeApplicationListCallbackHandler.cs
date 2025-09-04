@@ -1,4 +1,7 @@
+using CandidateTgBot.Extensions;
 using CandidateTgBot.Services;
+using CandidateTgBot.Services.CommunicationServices;
+using CandidateTgBot.Services.DataProviders;
 using CandidateTgBot.Types.Callbacks;
 using DataLayer.Contexts;
 using Microsoft.EntityFrameworkCore;
@@ -13,20 +16,24 @@ namespace CandidateTgBot.Handlers.CallbackHandlers;
 public class RevokeApplicationListCallbackHandler : ICallbackHandler<RevokeApplicationListCallback>
 {
     private readonly ITelegramBotClient _tg;
-    private readonly BotUserService _botUserService;
     private readonly HrBotContext _context;
     private readonly ILogger<RevokeApplicationListCallbackHandler> _logger;
+    private readonly ISendUnableToIdentifyMessage _sendUnableToIdentifyMessage;
+    private readonly IProvideUserFromCallback _userProvider;
 
     public RevokeApplicationListCallbackHandler(
         ITelegramBotClient tg,
         BotUserService botUserService,
         HrBotContext context,
-        ILogger<RevokeApplicationListCallbackHandler> logger)
+        ILogger<RevokeApplicationListCallbackHandler> logger,
+        ISendUnableToIdentifyMessage sendUnableToIdentifyMessage,
+        IProvideUserFromCallback userProvider)
     {
         _tg = tg;
-        _botUserService = botUserService;
         _context = context;
         _logger = logger;
+        _sendUnableToIdentifyMessage = sendUnableToIdentifyMessage;
+        _userProvider = userProvider;
     }
 
     public async Task Handle(
@@ -35,26 +42,19 @@ public class RevokeApplicationListCallbackHandler : ICallbackHandler<RevokeAppli
         CallbackQuery query,
         CancellationToken ct)
     {
-        try
+        
+        var botUserId = await _userProvider.GetBotUserId(query, ct);
+        if (botUserId is null)
         {
-            // Get bot user ID from the callback query
-            var botUserId = await GetBotUserIdFromCallback(query, ct);
-            if (botUserId == null)
-            {
-                await _tg.SendMessage(
-                    chatId: chatId,
-                    text: "❌ Unable to identify your user account. Please try again.",
-                    cancellationToken: ct
-                );
-                return;
-            }
+            await _sendUnableToIdentifyMessage.Send(chatId, ct);
+            return;
+        }
 
             // Get applications that can be revoked (CompletedByUser and CompetedByUserAndStartedNew status)
             var revokableApplications = await _context.UserApplications
                 .Include(a => a.Vacancy)
                 .Where(a => a.BotUserId == botUserId.Value && 
-                           (a.State == ApplicationStatus.CompletedByUser ||
-                            a.State == ApplicationStatus.CompetedByUserAndStartedNew))
+                           (a.State == ApplicationStatus.ReviewByHr))
                 .OrderByDescending(a => a.LastActivity)
                 .ToListAsync(ct);
 
@@ -74,21 +74,13 @@ public class RevokeApplicationListCallbackHandler : ICallbackHandler<RevokeAppli
             // Create keyboard with revoke buttons
             var keyboardButtons = revokableApplications.Select(app => new[]
             {
-                InlineKeyboardButton.WithCallbackData(
-                    text: $"🗑️ Revoke {app.Vacancy?.Title}",
-                    callbackData: new RevokeSpecificApplicationCallback { ApplicationId = app.Id }
-                        .ToTgString().ToString()
-                )
+                TgButtonProvider.Applications.RemoveApplication(
+                    title: app.Vacancy?.Title ?? "Unknown Vacancy",
+                    app.Id)
             }).ToList();
 
             // Add cancel button
-            keyboardButtons.Add(new[]
-            {
-                InlineKeyboardButton.WithCallbackData(
-                    text: "❌ Cancel",
-                    callbackData: new CancelRevokeCallback().ToTgString().ToString()
-                )
-            });
+            keyboardButtons.Add(TgButtonProvider.Applications.Status.ToArray());
 
             var keyboard = new InlineKeyboardMarkup(keyboardButtons);
 
@@ -112,32 +104,5 @@ public class RevokeApplicationListCallbackHandler : ICallbackHandler<RevokeAppli
             _logger.LogInformation(
                 "User {BotUserId} requested revoke application list in chat {ChatId}",
                 botUserId, chatId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error handling RevokeApplicationListCallback");
-            
-            await _tg.SendMessage(
-                chatId: chatId,
-                text: "❌ An error occurred while loading applications. Please try again.",
-                cancellationToken: ct
-            );
-        }
-    }
-
-    private async Task<Guid?> GetBotUserIdFromCallback(CallbackQuery query, CancellationToken ct)
-    {
-        if (query.From == null) return null;
-        
-        try
-        {
-            var botUser = await _botUserService.CreateOrUpdateUserAsync(query.From, ct);
-            return botUser?.Id;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting bot user for Telegram user {TgId}", query.From.Id);
-            return null;
-        }
     }
 }

@@ -1,6 +1,10 @@
+using CandidateTgBot.Extensions;
 using CandidateTgBot.Services;
+using CandidateTgBot.Services.CommunicationServices;
+using CandidateTgBot.Services.DataProviders;
 using CandidateTgBot.Types.Callbacks;
 using DataLayer.Contexts;
+using DataLayer.Dals;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shared.Models;
@@ -14,22 +18,24 @@ public class CancelApplicationCallbackHandler : ICallbackHandler<CancelApplicati
 {
     private readonly ITelegramBotClient _tg;
     private readonly HrBotContext _context;
-    private readonly ApplicationService _applicationService;
-    private readonly BotUserService _botUserService;
     private readonly ILogger<CancelApplicationCallbackHandler> _logger;
+    private readonly ISendUnableToIdentifyMessage _sendUnableToIdentifyMessage;
+    private readonly IProvideUserFromCallback _userProvider;
 
     public CancelApplicationCallbackHandler(
         ITelegramBotClient tg,
         HrBotContext context,
         ApplicationService applicationService,
         BotUserService botUserService,
-        ILogger<CancelApplicationCallbackHandler> logger)
+        ILogger<CancelApplicationCallbackHandler> logger,
+        ISendUnableToIdentifyMessage sendUnableToIdentifyMessage,
+        IProvideUserFromCallback userProvider)
     {
         _tg = tg;
         _context = context;
-        _applicationService = applicationService;
-        _botUserService = botUserService;
         _logger = logger;
+        _sendUnableToIdentifyMessage = sendUnableToIdentifyMessage;
+        _userProvider = userProvider;
     }
 
     public async Task Handle(
@@ -38,108 +44,57 @@ public class CancelApplicationCallbackHandler : ICallbackHandler<CancelApplicati
         CallbackQuery query,
         CancellationToken ct)
     {
-        try
+        var botUser = await _userProvider.GetBotUser(query, ct);
+        if (botUser is null)
         {
-            // Ensure we have the user information
-            if (query.From == null)
-            {
-                await _tg.SendMessage(
-                    chatId: chatId,
-                    text: "❌ Unable to identify user. Please try again.",
-                    cancellationToken: ct
-                );
-                return;
-            }
+            await _sendUnableToIdentifyMessage.Send(chatId, ct);
+            return;
+        }
 
-            // Get the bot user
-            var botUser = await _botUserService.CreateOrUpdateUserAsync(query.From, ct);
+        // Get the application with vacancy information
+        var application = await _context.UserApplications
+            .Include(a => a.Vacancy)
+            .Where(x => x.State == ApplicationStatus.InProgress)
+            .FirstOrDefaultAsync(a => a.Id == command.ApplicationId
+                                      && a.BotUserId == botUser.Id, ct);
 
-            // Get the application with vacancy information
-            var application = await _context.UserApplications
-                .Include(a => a.Vacancy)
-                .FirstOrDefaultAsync(a => a.Id == command.ApplicationId && a.BotUserId == botUser.Id, ct);
-
-            if (application == null)
-            {
-                await _tg.SendMessage(
-                    chatId: chatId,
-                    text: "❌ Application not found or you don't have permission to cancel it.",
-                    cancellationToken: ct
-                );
-                return;
-            }
-
-            // Check if application is already canceled or completed
-            if (application.State == ApplicationStatus.CanceledByUser)
-            {
-                await _tg.SendMessage(
-                    chatId: chatId,
-                    text: "ℹ️ This application has already been canceled.",
-                    cancellationToken: ct
-                );
-                return;
-            }
-
-            if (application.State == ApplicationStatus.CompletedByUser ||
-                application.State == ApplicationStatus.ApprovedByHr ||
-                application.State == ApplicationStatus.RejectedByHr)
-            {
-                await _tg.SendMessage(
-                    chatId: chatId,
-                    text: "❌ Cannot cancel this application as it has already been completed or processed.",
-                    cancellationToken: ct
-                );
-                return;
-            }
-
-            // Show confirmation dialog
-            var keyboard = new InlineKeyboardMarkup(new[]
-            {
-                new[]
-                {
-                    InlineKeyboardButton.WithCallbackData(
-                        text: "✅ Yes, Cancel Application",
-                        callbackData: new ConfirmCancelApplicationCallback
-                        {
-                            ApplicationId = command.ApplicationId
-                        }.ToTgString().ToString()
-                    )
-                },
-                new[]
-                {
-                    InlineKeyboardButton.WithCallbackData(
-                        text: "❌ No, Keep Application",
-                        callbackData: new KeepApplicationCallback().ToTgString().ToString()
-                    )
-                }
-            });
-
+        if (application == null)
+        {
             await _tg.SendMessage(
                 chatId: chatId,
-                text: $"🤔 **Confirm Application Cancellation**\n\n" +
-                      $"Are you sure you want to cancel your application for **{application.Vacancy?.Title}**?\n\n" +
-                      $"⚠️ *This action cannot be undone. You will need to start a new application if you change your mind.*",
-                parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
-                replyMarkup: keyboard,
+                text: "❌ Active application not found.",
                 cancellationToken: ct
             );
-
-            _logger.LogInformation(
-                "User {TgId} ({Username}) requested to cancel application {ApplicationId} for vacancy '{VacancyTitle}'",
-                botUser.TgId, botUser.TgName, application.Id, application.Vacancy?.Title);
-
+            return;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex,
-                "Error handling cancel application callback for user {ChatId}, application {ApplicationId}",
-                chatId, command.ApplicationId);
 
-            await _tg.SendMessage(
-                chatId: chatId,
-                text: "❌ An error occurred while processing your request. Please try again later.",
-                cancellationToken: ct
-            );
-        }
+        // Show confirmation dialog
+        var keyboard = new InlineKeyboardMarkup([
+            TgButtonProvider.Applications.ConfirmCancel(command.ApplicationId).ToArray(),
+            TgButtonProvider.Applications.Status.ToArray()
+        ]);
+
+        await ShowConfirmCancellationMsg(chatId, ct, application, keyboard);
+
+        _logger.LogInformation(
+            "User {TgId} ({Username}) requested to cancel application {ApplicationId} for vacancy '{VacancyTitle}'",
+            botUser.TgId, botUser.TgName, application.Id, application.Vacancy?.Title);
+    }
+
+    private async Task ShowConfirmCancellationMsg(
+        long chatId,
+        CancellationToken ct,
+        UserApplicationDal application,
+        InlineKeyboardMarkup keyboard)
+    {
+        await _tg.SendMessage(
+            chatId: chatId,
+            text: $"🤔 **Confirm Application Cancellation**\n\n" +
+                  $"Are you sure you want to cancel your application for **{application.Vacancy?.Title}**?\n\n" +
+                  $"⚠️ *This action cannot be undone. You will need to start a new application if you change your mind.*",
+            parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+            replyMarkup: keyboard,
+            cancellationToken: ct
+        );
     }
 }
