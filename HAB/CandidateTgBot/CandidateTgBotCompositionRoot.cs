@@ -4,6 +4,7 @@ using CandidateTgBot.Handlers.Commands;
 using CandidateTgBot.Helpers;
 using CandidateTgBot.Services;
 using CandidateTgBot.Services.CommunicationServices;
+using CandidateTgBot.Services.DataProviders;
 using CandidateTgBot.Handlers.CallbackHandlers;
 using CandidateTgBot.Types.Callbacks;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +30,14 @@ public static class CandidateTgBotCompositionRoot
         services.AddTransient<CallbackMessageHandler>();
         services.AddTransient<ButtonCallbackParser>();
         services.AddTransient<ISendUnableToIdentifyMessage, ErrorCommunicationService>();
+        services.AddTransient<ISendCommandParsingErrorMessage, ErrorCommunicationService>();
+        services.AddTransient<ApplyVacancyCommunicationService>();
+        
+        // Data providers
+        services.AddTransient<IProvideUserFromCallback, BotUserIdProvider>();
+        services.AddTransient<ApplicationStatusProvider>();
+        services.AddTransient<StatusCommunicationService>();
+        services.AddTransient<AnswerResultCommunicationService>();
 
         // Callback handlers
         services.Scan(scan => scan

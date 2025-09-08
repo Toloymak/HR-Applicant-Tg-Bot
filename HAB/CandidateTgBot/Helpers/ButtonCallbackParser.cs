@@ -29,7 +29,7 @@ public class ButtonCallbackParser
         { SendOneMoreApplicationCallback.CommandName, SendOneMoreApplicationCallback.Parse },
         { ShowStatusCallback.CommandName, ShowStatusCallback.Parse },
         { StartNewApplicationCallback.CommandName, StartNewApplicationCallback.Parse },
-        { RevokeApplicationListCallback.CommandName, RevokeApplicationListCallback.Parse },
+        // { RevokeApplicationListCallback.CommandName, RevokeApplicationListCallback.Parse },
         { RevokeSpecificApplicationCallback.CommandName, RevokeSpecificApplicationCallback.Parse },
         { ConfirmRevokeApplicationCallback.CommandName, ConfirmRevokeApplicationCallback.Parse },
         { ShowRevokeListCallback.CommandName, ShowRevokeListCallback.Parse }

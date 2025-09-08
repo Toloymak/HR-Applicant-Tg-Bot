@@ -7,7 +7,15 @@ public class ApplyVacancyCommunicationService
 {
     private readonly ITelegramBotClient _tg;
     private readonly CurrentQuestionService _questionService;
-    
+
+    public ApplyVacancyCommunicationService(
+        ITelegramBotClient tg,
+        CurrentQuestionService questionService)
+    {
+        _tg = tg;
+        _questionService = questionService;
+    }
+
     public async Task SendCurrentQuestion(
         long chatId,
         CancellationToken ct,

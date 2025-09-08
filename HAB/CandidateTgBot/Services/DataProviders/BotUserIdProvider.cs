@@ -13,7 +13,7 @@ public interface IProvideUserFromCallback
         CancellationToken ct);
 }
 
-public class BotUserIdProvider
+public class BotUserIdProvider : IProvideUserFromCallback
 {
     private readonly BotUserService _botUserService;
     private readonly ILogger<BotUserIdProvider> _logger;

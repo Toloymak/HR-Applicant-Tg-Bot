@@ -49,16 +49,6 @@ public class SendOneMoreApplicationCallbackHandler : ICallbackHandler<SendOneMor
             return;
         }
 
-        // Send confirmation message
-        await _tg.SendMessage(
-            chatId: chatId,
-            text: "🎯 **Ready for Another Application!**\n\n" +
-                  "Your previous application has been marked as completed.\n\n" +
-                  "Here are the available positions:",
-            parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
-            cancellationToken: ct
-        );
-
         // Show available vacancies
         await _welcomeService.SendWelcomeMessageAsync(chatId, botUserId, ct);
 
