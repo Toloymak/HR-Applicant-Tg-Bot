@@ -1,7 +1,7 @@
 namespace CandidateTgBot.Types.Callbacks;
 
 public record VacancyInfoCallback 
-    : ICallback, IHasConstantCommandName
+    : ICallback, IHasConstantCommandName, IParsableCallback<VacancyInfoCallback>
         
 {
     public static string CommandName => "vi";

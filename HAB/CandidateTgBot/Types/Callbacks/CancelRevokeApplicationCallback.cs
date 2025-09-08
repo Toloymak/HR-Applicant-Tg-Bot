@@ -1,6 +1,6 @@
 namespace CandidateTgBot.Types.Callbacks;
 
-public record CancelRevokeApplicationCallback : ICallback, IHasConstantCommandName
+public record CancelRevokeApplicationCallback : ICallback, IHasConstantCommandName, IParsableCallback<CancelRevokeApplicationCallback>
 {
     public static string CommandName => "keep_app";
 

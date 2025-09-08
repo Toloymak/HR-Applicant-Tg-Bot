@@ -1,6 +1,6 @@
 namespace CandidateTgBot.Types.Callbacks;
 
-public record ApplyForVacancyCallback : ICallback, IHasConstantCommandName
+public record ApplyForVacancyCallback : ICallback, IHasConstantCommandName, IParsableCallback<ApplyForVacancyCallback>
 {
     public static string CommandName => "ap";
 

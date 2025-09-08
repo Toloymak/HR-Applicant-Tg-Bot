@@ -1,3 +1,4 @@
+using CandidateTgBot.Handlers.Commands;
 using CandidateTgBot.Types.Callbacks;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -21,11 +22,15 @@ public static class TgButtonProvider
                     .ToTgString().ToString()
             );
 
+        public static InlineKeyboardButton ContinueWorkWithApplication
+            => InlineKeyboardButton.WithCallbackData(
+                text: "📋 Continue...",
+                callbackData: new ContinueCallback().ToTgString().ToString());
+
         public static InlineKeyboardButton ShowRevokeApplicationMenu
             => InlineKeyboardButton.WithCallbackData(
                 text: "🚫 Cancel Application",
-                callbackData: new ShowRevokeListCallback()
-                    .ToTgString().ToString()
+                callbackData: new ShowRevokeListCallback().ToTgString().ToString()
             );
 
         public static InlineKeyboardButton RemoveApplication(

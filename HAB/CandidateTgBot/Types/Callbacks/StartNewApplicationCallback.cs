@@ -1,6 +1,6 @@
 namespace CandidateTgBot.Types.Callbacks;
 
-public record StartNewApplicationCallback : ICallback, IHasConstantCommandName
+public record StartNewApplicationCallback : ICallback, IHasConstantCommandName, IParsableCallback<StartNewApplicationCallback>
 {
     public static string CommandName => "start_new_application";
     public string Command => CommandName;

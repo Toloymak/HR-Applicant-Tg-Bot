@@ -1,6 +1,7 @@
 namespace CandidateTgBot.Types.Callbacks;
 
-public record RevokeSpecificApplicationCallback : ICallback, IHasConstantCommandName
+public record RevokeSpecificApplicationCallback 
+    : ICallback, IHasConstantCommandName, IParsableCallback<RevokeSpecificApplicationCallback>
 {
     public static string CommandName => "revoke_app";
     public string Command => CommandName;

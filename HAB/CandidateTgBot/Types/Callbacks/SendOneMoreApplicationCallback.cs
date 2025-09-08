@@ -1,6 +1,6 @@
 namespace CandidateTgBot.Types.Callbacks;
 
-public record SendOneMoreApplicationCallback : ICallback, IHasConstantCommandName
+public record SendOneMoreApplicationCallback : ICallback, IHasConstantCommandName, IParsableCallback<SendOneMoreApplicationCallback>
 {
     public static string CommandName => "send_one_more";
     public string Command => CommandName;

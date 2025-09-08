@@ -1,6 +1,6 @@
 namespace CandidateTgBot.Types.Callbacks;
 
-public record CancelApplicationCallback : ICallback, IHasConstantCommandName
+public record CancelApplicationCallback : ICallback, IHasConstantCommandName, IParsableCallback<CancelApplicationCallback>
 {
     public static string CommandName => "cancel_app";
 

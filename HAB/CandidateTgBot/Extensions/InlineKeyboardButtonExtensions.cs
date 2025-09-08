@@ -15,4 +15,8 @@ public static class InlineKeyboardButtonExtensions
     public static InlineKeyboardMarkup ToMarkupKeyboard(
         this InlineKeyboardButton[] buttons)
         => new(buttons);
+
+    public static InlineKeyboardMarkup ToMarkupKeyboard(
+        this InlineKeyboardButton buttons)
+        => buttons.ToArray().ToMarkupKeyboard();
 }

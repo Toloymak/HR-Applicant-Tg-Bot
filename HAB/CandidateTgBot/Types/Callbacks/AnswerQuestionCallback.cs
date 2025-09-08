@@ -1,6 +1,6 @@
 namespace CandidateTgBot.Types.Callbacks;
 
-public record AnswerYesCallback : ICallback, IHasConstantCommandName
+public record AnswerYesCallback : ICallback, IHasConstantCommandName, IParsableCallback<AnswerYesCallback>
 {
     public static string CommandName => "answer_yes";
     public string Command => CommandName;
@@ -25,7 +25,7 @@ public record AnswerYesCallback : ICallback, IHasConstantCommandName
     public string GetDebugString() => "QuestionId:" + QuestionId;
 }
 
-public record AnswerNoCallback : ICallback, IHasConstantCommandName
+public record AnswerNoCallback : ICallback, IHasConstantCommandName, IParsableCallback<AnswerNoCallback>
 {
     public static string CommandName => "answer_no";
     public string Command => CommandName;
@@ -51,7 +51,7 @@ public record AnswerNoCallback : ICallback, IHasConstantCommandName
         => "QuestionId:" + QuestionId;
 }
 
-public record AnswerTextCallback : ICallback, IHasConstantCommandName
+public record AnswerTextCallback : ICallback, IHasConstantCommandName, IParsableCallback<AnswerTextCallback>
 {
     public static string CommandName => "answer_text";
     public string Command => CommandName;

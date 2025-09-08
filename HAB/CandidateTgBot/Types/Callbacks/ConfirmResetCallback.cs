@@ -1,6 +1,6 @@
 namespace CandidateTgBot.Types.Callbacks;
 
-public record ConfirmResetCallback : ICallback, IHasConstantCommandName
+public record ConfirmResetCallback : ICallback, IHasConstantCommandName, IParsableCallback<ConfirmResetCallback>
 {
     public static string CommandName => "confirm_reset";
 

@@ -1,4 +1,5 @@
 using System.Dynamic;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using CandidateTgBot.Types.Callbacks;
@@ -13,27 +14,7 @@ public class ButtonCallbackParser
     private readonly ILogger<ButtonCallbackParser> _logger;
 
     private static readonly Dictionary<string, Func<string?, ICallback?>>
-        CommandParsers = new()
-    {
-        { VacancyInfoCallback.CommandName, VacancyInfoCallback.Parse },
-        { UpdateVacancyListCallback.CommandName, UpdateVacancyListCallback.Parse },
-        { ApplyForVacancyCallback.CommandName, ApplyForVacancyCallback.Parse },
-        { ShowOtherVacanciesCallback.CommandName, ShowOtherVacanciesCallback.Parse },
-        { CancelApplicationCallback.CommandName, CancelApplicationCallback.Parse },
-        { ConfirmCancelApplicationCallback.CommandName, ConfirmCancelApplicationCallback.Parse },
-        { ConfirmResetCallback.CommandName, ConfirmResetCallback.Parse },
-        { CancelRevokeApplicationCallback.CommandName, CancelRevokeApplicationCallback.Parse },
-        { AnswerYesCallback.CommandName, AnswerYesCallback.Parse },
-        { AnswerNoCallback.CommandName, AnswerNoCallback.Parse },
-        { AnswerTextCallback.CommandName, AnswerTextCallback.Parse },
-        { SendOneMoreApplicationCallback.CommandName, SendOneMoreApplicationCallback.Parse },
-        { ShowStatusCallback.CommandName, ShowStatusCallback.Parse },
-        { StartNewApplicationCallback.CommandName, StartNewApplicationCallback.Parse },
-        // { RevokeApplicationListCallback.CommandName, RevokeApplicationListCallback.Parse },
-        { RevokeSpecificApplicationCallback.CommandName, RevokeSpecificApplicationCallback.Parse },
-        { ConfirmRevokeApplicationCallback.CommandName, ConfirmRevokeApplicationCallback.Parse },
-        { ShowRevokeListCallback.CommandName, ShowRevokeListCallback.Parse }
-    };
+        CommandParsers = BuildCommandParsers();
 
     public ButtonCallbackParser(ILogger<ButtonCallbackParser> logger)
     {
@@ -58,4 +39,70 @@ public class ButtonCallbackParser
     
     private static TgCallbackData? GetCommand(string callback)
         => TgCallbackData.Parse(callback);
+
+    /// <summary>
+    /// Automatically discovers and registers all callback types that implement ICallback, IHasConstantCommandName, and IParsableCallback<T>
+    /// </summary>
+    private static Dictionary<string, Func<string?, ICallback?>> BuildCommandParsers()
+    {
+        var parsers = new Dictionary<string, Func<string?, ICallback?>>();
+        
+        // Get all types in the current assembly that implement the required interfaces
+        var callbackTypes = Assembly.GetExecutingAssembly()
+            .GetTypes()
+            .Where(type => type.IsClass 
+                          && !type.IsAbstract 
+                          && typeof(ICallback).IsAssignableFrom(type)
+                          && typeof(IHasConstantCommandName).IsAssignableFrom(type)
+                          && HasParsableCallbackInterface(type))
+            .ToList();
+
+        foreach (var callbackType in callbackTypes)
+        {
+            try
+            {
+                // Get the CommandName static property
+                var commandNameProperty = callbackType.GetProperty(nameof(IHasConstantCommandName.CommandName), 
+                    BindingFlags.Public | BindingFlags.Static);
+                
+                if (commandNameProperty?.GetValue(null) is not string commandName)
+                    continue;
+
+                // Get the Parse static method from IParsableCallback<T>
+                var parseMethod = callbackType.GetMethod("Parse", 
+                    BindingFlags.Public | BindingFlags.Static, 
+                    null,
+                    [typeof(string)], 
+                    null);
+
+                if (parseMethod == null)
+                    continue;
+
+                // Create a delegate for the Parse method
+                var parseDelegate = (Func<string?, ICallback?>)Delegate.CreateDelegate(
+                    typeof(Func<string?, ICallback?>), 
+                    parseMethod);
+
+                parsers[commandName] = parseDelegate;
+            }
+            catch (Exception)
+            {
+                // Skip types that don't conform to the expected pattern
+                continue;
+            }
+        }
+
+        return parsers;
+    }
+
+    /// <summary>
+    /// Checks if a type implements IParsableCallback<T> where T is the type itself
+    /// </summary>
+    private static bool HasParsableCallbackInterface(Type type)
+    {
+        var interfaces = type.GetInterfaces();
+        return interfaces.Any(i => i.IsGenericType 
+                                  && i.GetGenericTypeDefinition() == typeof(IParsableCallback<>)
+                                  && i.GetGenericArguments()[0] == type);
+    }
 }

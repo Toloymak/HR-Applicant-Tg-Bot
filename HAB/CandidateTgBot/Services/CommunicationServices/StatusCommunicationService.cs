@@ -50,7 +50,7 @@ public class StatusCommunicationService
         var statuses = await _statusProvider
             .GetApplicationForStatusCheck(chatId, botUserId, ct);
 
-        if (!statuses.Any())
+        if (statuses.Any())
         {
             await ShowShortCompletedStatusAsync(
                 chatId,
@@ -80,6 +80,7 @@ public class StatusCommunicationService
                 ApplicationStatus.ReviewByHr => "✅ Submitted for Review",
                 ApplicationStatus.Approved => "✅ Approved! We will contact you soon",
                 ApplicationStatus.Rejected => "❌ Sorry, you were not selected for this role",
+                ApplicationStatus.InProgress => "📝 In Progress",
                 _ => "Unknown Status"
             };
             
@@ -94,8 +95,9 @@ public class StatusCommunicationService
 
         statusText += "💡 *Ready to start a new application?*";
 
-        var keyboard = TgButtonProvider.Applications.StartNew
-            .ToArray()
+        var keyboard = (applications.Any(x => x.State is ApplicationStatus.InProgress)
+                ? TgButtonProvider.Applications.ContinueWorkWithApplication
+                : TgButtonProvider.Applications.StartNew)
             .ToMarkupKeyboard();
 
         if (applications.Any(x => x.State is ApplicationStatus.ReviewByHr))

@@ -44,30 +44,28 @@ public class ShowRevokeMenuCallbackHandler : ICallbackHandler<ShowRevokeListCall
             return;
         }
 
-            // Send cancellation message
-            await _tg.SendMessage(
-                chatId: chatId,
-                text: "✅ **Revocation Cancelled**\n\n" +
-                      "Your application revocation has been cancelled.\n\n" +
-                      "💡 *Your applications remain unchanged.*",
-                parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
-                cancellationToken: ct
-            );
+        // Send cancellation message
+        await _tg.SendMessage(
+            chatId: chatId,
+            text: "✅ **Revocation Cancelled**\n\n" +
+                  "Your application revocation has been cancelled.\n\n" +
+                  "💡 *Your applications remain unchanged.*",
+            parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+            cancellationToken: ct
+        );
 
-            // Show status again
-            await _statusCommunicationService.SendStatusInfo(chatId, botUserId.Value, ct);
+        // Show status again
+        await _statusCommunicationService.SendStatusInfo(chatId, botUserId.Value, ct);
 
-            await _tg.AnswerCallbackQuery(
-                callbackQueryId: query.Id,
-                text: "Revocation cancelled",
-                showAlert: false,
-                cancellationToken: ct
-            );
+        await _tg.AnswerCallbackQuery(
+            callbackQueryId: query.Id,
+            text: "Revocation cancelled",
+            showAlert: false,
+            cancellationToken: ct
+        );
 
-            _logger.LogInformation(
-                "User {BotUserId} cancelled application revocation in chat {ChatId}",
-                botUserId, chatId);
-        
+        _logger.LogInformation(
+            "User {BotUserId} cancelled application revocation in chat {ChatId}",
+            botUserId, chatId);
     }
-
 }

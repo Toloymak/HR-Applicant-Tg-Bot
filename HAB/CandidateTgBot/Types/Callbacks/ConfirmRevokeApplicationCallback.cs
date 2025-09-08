@@ -1,6 +1,6 @@
 namespace CandidateTgBot.Types.Callbacks;
 
-public record ConfirmRevokeApplicationCallback : ICallback, IHasConstantCommandName
+public record ConfirmRevokeApplicationCallback : ICallback, IHasConstantCommandName, IParsableCallback<ConfirmRevokeApplicationCallback>
 {
     public static string CommandName => "confirm_revoke";
     public string Command => CommandName;

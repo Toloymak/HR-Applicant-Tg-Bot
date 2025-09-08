@@ -1,7 +1,7 @@
 namespace CandidateTgBot.Types.Callbacks;
 
 public record UpdateVacancyListCallback
-    : ICallback, IHasConstantCommandName
+    : ICallback, IHasConstantCommandName, IParsableCallback<UpdateVacancyListCallback>
 {
     public static string CommandName => "ul";
     
