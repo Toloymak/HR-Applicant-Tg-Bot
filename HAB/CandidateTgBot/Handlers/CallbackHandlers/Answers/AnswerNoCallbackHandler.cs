@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace CandidateTgBot.Handlers.CallbackHandlers;
+namespace CandidateTgBot.Handlers.CallbackHandlers.Answers;
 
 public class AnswerNoCallbackHandler : ICallbackHandler<AnswerNoCallback>
 {

@@ -6,6 +6,7 @@ using CandidateTgBot.Services;
 using CandidateTgBot.Services.CommunicationServices;
 using CandidateTgBot.Services.DataProviders;
 using CandidateTgBot.Handlers.CallbackHandlers;
+using CandidateTgBot.Handlers.CallbackHandlers.Answers;
 using CandidateTgBot.Types.Callbacks;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -32,6 +33,7 @@ public static class CandidateTgBotCompositionRoot
         services.AddTransient<ISendUnableToIdentifyMessage, ErrorCommunicationService>();
         services.AddTransient<ISendCommandParsingErrorMessage, ErrorCommunicationService>();
         services.AddTransient<ApplyVacancyCommunicationService>();
+        services.AddTransient<ApplicationCompleter>();
         
         // Data providers
         services.AddTransient<IProvideUserFromCallback, BotUserIdProvider>();
@@ -47,5 +49,10 @@ public static class CandidateTgBotCompositionRoot
             .WithTransientLifetime());
 
         services.Decorate(typeof(ICallbackHandler<>), typeof(CallbackExceptionHandlerDecorator<>));
+        
+        // Decorate Answer handlers with summary check
+        services.Decorate<ICallbackHandler<AnswerYesCallback>, AnswerSummaryCheckDecorator<AnswerYesCallback>>();
+        services.Decorate<ICallbackHandler<AnswerNoCallback>, AnswerSummaryCheckDecorator<AnswerNoCallback>>();
+        services.Decorate<ICallbackHandler<AnswerTextCallback>, AnswerSummaryCheckDecorator<AnswerTextCallback>>();
     }
 }
